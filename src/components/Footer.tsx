@@ -193,6 +193,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <a href="#team" onClick={(e) => handleNavClick('team', e)}>Our Team</a>
                 <a href="https://www.fsia.in/news.php">News Coverage</a>
                 <a href="https://www.fsia.in/online-franchise-application" target="_blank" rel="noopener noreferrer">Apply for Franchise</a>
+                <a href="/admin-preview.html" target="_blank" rel="noopener noreferrer" style={{ color: '#D4AF37', fontWeight: 600 }}>★ Admin Panel Preview (Dev)</a>
                 <a href="https://www.fsia.in/sitemap.php" target="_blank" rel="noopener noreferrer">Sitemap</a>
               </div>
             </div>

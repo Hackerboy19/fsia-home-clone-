@@ -1,15 +1,78 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface HeaderProps {
   onOpenSearch?: () => void;
   onNavigate?: (sectionId: string) => void;
 }
 
+const TICKER_ITEMS = [
+  {
+    icon: '🟡',
+    title: 'Now Open:',
+    text: 'Auditions Miss India, Mrs India (G-1 & G-2) & Miss Teen India 2026 — Limited City Entries',
+    link: 'https://www.fsia.in/quickapply',
+    linkText: 'Register Online →',
+    isExternal: true
+  },
+  {
+    icon: '👑',
+    title: 'Zee Studio Finale:',
+    text: 'Grand National Coronation Gala 2026 at Zee Studio Jaipur — Live Nationwide Broadcast',
+    link: '#schedule',
+    linkText: 'View Dates Calendar →',
+    isExternal: false,
+    section: 'schedule'
+  },
+  {
+    icon: '🏆',
+    title: 'Award Nominations:',
+    text: 'Super Woman Award (Season 8) & Super Hero Award 2026 — Nominations Open',
+    link: 'https://www.fsia.in/super-woman-award.php',
+    linkText: 'Nominate Now →',
+    isExternal: true
+  },
+  {
+    icon: '▶',
+    title: 'Winner Reels:',
+    text: 'Watch Video Success Journeys of Crowned Titleholders Across India',
+    link: '#success-stories',
+    linkText: 'Watch Stories →',
+    isExternal: false,
+    section: 'success-stories'
+  },
+  {
+    icon: '🇮🇳',
+    title: 'National Recognition:',
+    text: 'Bharat National Awards honoring Achievers & Leaders across 4,000+ Cities & 28 States',
+    link: 'https://www.fsia.in/top-awardee-in-india',
+    linkText: 'Explore Awardees →',
+    isExternal: true
+  },
+  {
+    icon: '📞',
+    title: 'Delegate Helpline:',
+    text: '+91-99832-86999 (Mon–Sat, 10 AM – 7 PM IST) for Auditions & Registration Inquiries',
+    link: 'tel:+919983286999',
+    linkText: 'Call Helpline →',
+    isExternal: true
+  },
+  {
+    icon: '🎖️',
+    title: 'Govt. Certified:',
+    text: 'Govt. of India Class 41 Registered Trademark Organization for Pageantry & Awards',
+    link: 'https://www.fsia.in/about-us.php',
+    linkText: 'Verify Credential →',
+    isExternal: true
+  }
+];
+
 export const Header: React.FC<HeaderProps> = ({
   onOpenSearch,
   onNavigate
 }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [isTickerPaused, setIsTickerPaused] = useState(false);
+  const [isTickerDismissed, setIsTickerDismissed] = useState(false);
 
   useEffect(() => {
     const header = document.getElementById('fsiaMH');
@@ -169,26 +232,57 @@ export const Header: React.FC<HeaderProps> = ({
         .fsia-mh a{ text-decoration:none !important; color:inherit !important; }
         .fsia-mh .wrap{ width:100% !important; max-width:1240px !important; margin:0 auto !important; padding:0 22px !important; }
 
-        /* ---------- 1. Announcement ---------- */
-        .fsia-mh .anc{ background:linear-gradient(90deg,var(--mar),var(--mar-dk)) !important;
-          color:#fff !important; font-size:12.5px !important; line-height:1.4 !important;
-          border-bottom:1px solid rgba(212,175,55,.45) !important; overflow:hidden !important;
+        /* ---------- 1. Announcement Continuous Flowing Ticker ---------- */
+        .fsia-mh .anc{ background:linear-gradient(90deg,#6b0526,#a6093d 40%,#6b0526) !important;
+          color:#fff !important; font-size:12px !important; line-height:1.4 !important;
+          border-bottom:1px solid rgba(212,175,55,.4) !important; overflow:hidden !important;
           box-shadow:inset 0 1px 0 rgba(255,255,255,.18), 0 4px 10px -5px rgba(122,6,44,.5) !important;
+          display:flex !important; align-items:center !important; height:36px !important; position:relative !important;
         }
-        .fsia-mh .anc-in{ display:flex !important; align-items:center !important; justify-content:center !important;
-          gap:10px !important; padding:7px 40px 7px 16px !important; position:relative !important; text-align:center !important; }
-        .fsia-mh .anc-in b{ font-weight:600 !important; color:#fde8c4 !important; }
-        .fsia-mh .anc-in a{ color:var(--gold) !important; font-weight:700 !important; white-space:nowrap !important;
-          display:inline-flex !important; align-items:center !important; gap:4px !important; }
-        .fsia-mh .anc-in a .arrow{ display:inline-block !important; transition:transform .2s ease !important; }
-        .fsia-mh .anc-in a:hover .arrow{ transform:translateX(4px) !important; }
-        .fsia-mh .anc-live{ width:7px !important; height:7px !important; border-radius:50% !important;
-          background:var(--gold) !important; flex:0 0 auto !important; }
-        .fsia-mh .anc-x{ position:absolute !important; right:12px !important; top:50% !important; transform:translateY(-50%) !important;
-          background:transparent !important; border:0 !important; color:rgba(255,255,255,.7) !important;
-          font-size:16px !important; line-height:1 !important; cursor:pointer !important; padding:4px !important;
-          transition:color .15s ease,transform .15s ease !important; }
-        .fsia-mh .anc-x:hover{ color:#fff !important; transform:translateY(-50%) rotate(90deg) !important; }
+        .fsia-mh .anc-badge{ display:flex !important; align-items:center !important; gap:6px !important;
+          padding:0 12px !important; height:100% !important; background:rgba(0,0,0,.35) !important;
+          border-right:1px solid rgba(212,175,55,.3) !important; color:#fde8c4 !important;
+          font-size:11px !important; font-weight:700 !important; letter-spacing:.8px !important;
+          text-transform:uppercase !important; flex-shrink:0 !important; z-index:4 !important; white-space:nowrap !important;
+        }
+        .fsia-mh .anc-pulse{ width:7px !important; height:7px !important; border-radius:50% !important;
+          background:#d4af37 !important; animation:ancPulse 2s infinite !important; flex-shrink:0 !important; }
+        @keyframes ancPulse{
+          0%{ transform:scale(0.95); box-shadow:0 0 0 0 rgba(212,175,55,.7); }
+          70%{ transform:scale(1.15); box-shadow:0 0 0 6px rgba(212,175,55,0); }
+          100%{ transform:scale(0.95); box-shadow:0 0 0 0 rgba(212,175,55,0); }
+        }
+        .fsia-mh .anc-marquee{ flex:1 1 auto !important; overflow:hidden !important; position:relative !important;
+          display:flex !important; align-items:center !important; white-space:nowrap !important; height:100% !important;
+          mask-image:linear-gradient(90deg,transparent,black 16px,black calc(100% - 24px),transparent) !important;
+          -webkit-mask-image:linear-gradient(90deg,transparent,black 16px,black calc(100% - 24px),transparent) !important;
+        }
+        .fsia-mh .anc-track{ display:inline-flex !important; align-items:center !important; white-space:nowrap !important;
+          animation:fsiaMarquee 42s linear infinite !important; will-change:transform !important; }
+        .fsia-mh .anc:hover .anc-track, .fsia-mh .anc-track.is-paused{ animation-play-state:paused !important; }
+        @keyframes fsiaMarquee{
+          0%{ transform:translate3d(0,0,0); }
+          100%{ transform:translate3d(-50%,0,0); }
+        }
+        .fsia-mh .anc-item{ display:inline-flex !important; align-items:center !important; gap:7px !important;
+          padding:0 18px !important; font-size:12px !important; color:#ffffff !important; white-space:nowrap !important; }
+        .fsia-mh .anc-item b{ color:#fde8c4 !important; font-weight:600 !important; }
+        .fsia-mh .anc-item a{ color:var(--gold) !important; font-weight:700 !important; text-decoration:underline !important;
+          text-underline-offset:3px !important; display:inline-flex !important; align-items:center !important; gap:3px !important;
+          transition:color .15s ease !important; cursor:pointer !important; }
+        .fsia-mh .anc-item a:hover{ color:#ffffff !important; text-decoration:none !important; }
+        .fsia-mh .anc-sep{ color:rgba(212,175,55,.6) !important; font-size:11px !important; padding:0 4px !important; user-select:none !important; }
+        .fsia-mh .anc-ctrls{ display:flex !important; align-items:center !important; gap:3px !important;
+          padding:0 10px !important; height:100% !important; background:linear-gradient(90deg,transparent,rgba(107,5,38,.94) 35%) !important;
+          z-index:5 !important; flex-shrink:0 !important; }
+        .fsia-mh .anc-btn{ background:transparent !important; border:0 !important; color:rgba(255,255,255,.75) !important;
+          cursor:pointer !important; padding:4px 6px !important; display:flex !important; align-items:center !important;
+          justify-content:center !important; border-radius:4px !important; transition:color .15s ease,background .15s ease !important; }
+        .fsia-mh .anc-btn:hover{ color:#fff !important; background:rgba(255,255,255,.18) !important; }
+        @media (max-width:540px){
+          .fsia-mh .anc-badge{ padding:0 8px !important; font-size:10px !important; letter-spacing:.4px !important; }
+          .fsia-mh .anc-item{ padding:0 12px !important; font-size:11.5px !important; }
+        }
 
         /* ---------- 2. Main nav ---------- */
         .fsia-mh .nav{ display:block !important; border-bottom:1px solid var(--line) !important; background:#fff !important;
@@ -433,29 +527,92 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Canonical FSIA Header Element (.fsia-mh) */}
       <header className="fsia-mh" id="fsiaMH">
-        {/* 1. ANNOUNCEMENT */}
-        <div className="anc" id="fsiaAnc">
-          <div className="wrap">
-            <div className="anc-in">
-              <span className="anc-live" aria-hidden="true"></span>
-              <span><b>Now open:</b> Auditions Miss India, Mrs India &amp; Miss Teen India 2026 - Limited Entries</span>
-              <a href="https://www.fsia.in/quickapply" target="_blank" rel="noopener noreferrer">
-                Register <span className="arrow">→</span>
-              </a>
+        {/* 1. CONTINUOUS FLOWING ANNOUNCEMENT TICKER */}
+        {!isTickerDismissed && (
+          <div
+            className="anc"
+            id="fsiaAnc"
+            role="region"
+            aria-label="Official Announcements Ticker"
+          >
+            {/* Live Badge */}
+            <div className="anc-badge">
+              <span className="anc-pulse" aria-hidden="true" />
+              <span>LIVE UPDATES</span>
+            </div>
+
+            {/* Marquee Viewport */}
+            <div
+              className="anc-marquee"
+              title="Continuous announcement ticker (Hover to pause)"
+            >
+              <div className={`anc-track ${isTickerPaused ? 'is-paused' : ''}`}>
+                {/* Render two identical sets of items for seamless infinite loop */}
+                {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, idx) => (
+                  <div key={idx} className="anc-item">
+                    <span>{item.icon}</span>
+                    <span>
+                      <b>{item.title}</b> {item.text}
+                    </span>
+                    {item.isExternal ? (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {item.linkText}
+                      </a>
+                    ) : (
+                      <a
+                        href={item.link}
+                        onClick={(e) => {
+                          if (item.section) {
+                            handleNavClick(item.section, e);
+                          }
+                        }}
+                      >
+                        {item.linkText}
+                      </a>
+                    )}
+                    <span className="anc-sep" aria-hidden="true">✦</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Action Controls: Pause & Close */}
+            <div className="anc-ctrls">
               <button
-                className="anc-x"
-                aria-label="Dismiss Announcement"
+                className="anc-btn"
                 type="button"
-                onClick={() => {
-                  const a = document.getElementById('fsiaAnc');
-                  if (a) a.style.display = 'none';
-                }}
+                onClick={() => setIsTickerPaused(!isTickerPaused)}
+                aria-label={isTickerPaused ? 'Resume ticker movement' : 'Pause ticker movement'}
+                title={isTickerPaused ? 'Resume scroll' : 'Pause scroll'}
+              >
+                {isTickerPaused ? (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                ) : (
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                )}
+              </button>
+
+              <button
+                className="anc-btn"
+                type="button"
+                onClick={() => setIsTickerDismissed(true)}
+                aria-label="Dismiss Announcement Bar"
+                title="Dismiss bar"
               >
                 ✕
               </button>
             </div>
           </div>
-        </div>
+        )}
 
         {/* 2. MAIN NAV */}
         <nav className="nav">

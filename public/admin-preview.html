@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FSIA Admin Portal - System Preview & Developer Specifications</title>
+  <!-- Tailwind CSS CDN for instant styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              maroon: '#A6093D',
+              darkMaroon: '#78072B',
+              gold: '#D4AF37',
+              darkGold: '#B8860B',
+              darkBlue: '#0C1322',
+              cardBg: '#131B2E',
+              borderGold: 'rgba(212, 175, 55, 0.25)'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #080D18;
+      color: #E2E8F0;
+    }
+    .font-serif-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0C1322;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #25334E;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #D4AF37;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP DEVELOPER NOTICE BAR -->
+  <div class="bg-gradient-to-r from-brand-maroon via-purple-950 to-brand-darkBlue border-b border-brand-borderGold px-4 py-2.5 text-xs">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded bg-brand-gold text-brand-darkBlue font-bold font-mono-code text-[11px] uppercase tracking-wider">
+          Developer Blueprint
+        </span>
+        <span class="text-amber-100 font-medium">
+          Official Admin Panel UI Preview &amp; REST API / Database Schema Specs for FSIA
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          onclick="downloadSelfHtml()"
+          class="bg-brand-gold hover:bg-yellow-400 text-brand-darkBlue font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+          title="Download this preview as a standalone .html file"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download HTML File</span>
+        </button>
+
+        <a
+          href="/"
+          class="bg-white/10 hover:bg-white/20 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all border border-white/10"
+        >
+          <span>Back to Live Website</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN WRAPPER -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-[#0C1322] border-r border-stone-800 flex flex-col justify-between hidden md:flex shrink-0">
+      <div>
+        <!-- Brand Header -->
+        <div class="p-5 border-b border-stone-800 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-gold to-yellow-600 flex items-center justify-center text-brand-darkBlue font-serif-cinzel font-bold text-lg shadow-md">
+            ★
+          </div>
+          <div>
+            <h1 class="font-serif-cinzel font-bold text-sm tracking-wider text-white">FSIA ADMIN</h1>
+            <p class="text-[10px] text-amber-300 font-mono-code">v2.4 Production Suite</p>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="p-3 space-y-1" id="navTabs">
+          <button
+            onclick="switchTab('dashboard')"
+            id="tab-btn-dashboard"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all bg-brand-maroon text-white shadow-sm"
+          >
+            <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+            <span>Overview Dashboard</span>
+          </button>
+
+          <button
+            onclick="switchTab('slider')"
+            id="tab-btn-slider"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-stone-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>Hero Slider Banners</span>
+            <span class="ml-auto text-[10px] bg-brand-gold/20 text-amber-300 px-1.5 py-0.5 rounded font-mono-code">6 Active</span>
+          </button>
+
+          <button
+            onclick="switchTab('calendar')"
+            id="tab-btn-calendar"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-stone-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <span>Event Calendar &amp; Dates</span>
+            <span class="ml-auto text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono-code">12</span>
+          </button>
+
+          <button
+            onclick="switchTab('stories')"
+            id="tab-btn-stories"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-stone-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            <span>Success Stories (Reels)</span>
+            <span class="ml-auto text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-mono-code">AI+</span>
+          </button>
+
+          <button
+            onclick="switchTab('applications')"
+            id="tab-btn-applications"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-stone-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Audition Applications</span>
+            <span class="ml-auto text-[10px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono-code">4.8k</span>
+          </button>
+
+          <button
+            onclick="switchTab('winners')"
+            id="tab-btn-winners"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-stone-400 hover:text-white hover:bg-white/5 transition-all"
+          >
+            <svg class="w-4 h-4 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+            <span>Winners Hall of Fame</span>
+          </button>
+
+          <button
+            onclick="switchTab('api-specs')"
+            id="tab-btn-api-specs"
+            class="tab-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-amber-300 hover:bg-amber-400/10 transition-all border border-amber-500/30"
+          >
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            <span class="font-bold">API &amp; DB Specs</span>
+            <span class="ml-auto text-[10px] bg-amber-400 text-brand-darkBlue font-bold px-1.5 py-0.5 rounded">DEV</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Admin User Footer -->
+      <div class="p-4 border-t border-stone-800 bg-black/20 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-brand-maroon flex items-center justify-center font-bold text-white text-xs">
+            AD
+          </div>
+          <div>
+            <div class="font-semibold text-white">FSIA Central Secretariat</div>
+            <div class="text-[11px] text-stone-400">admin@fsia.in</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT VIEWPORT -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#080D18]">
+
+      <!-- TAB 1: OVERVIEW DASHBOARD -->
+      <section id="view-dashboard" class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+              Management Dashboard
+            </h2>
+            <p class="text-xs sm:text-sm text-stone-400 mt-1">
+              Real-time control center for pageants, awards, hero slider, and audition schedules.
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="switchTab('slider')" class="px-4 py-2 bg-brand-gold text-brand-darkBlue text-xs font-bold rounded-xl shadow-md hover:bg-yellow-400 transition-all">
+              + Update Hero Slider
+            </button>
+            <button onclick="switchTab('calendar')" class="px-4 py-2 bg-white/10 text-white text-xs font-semibold rounded-xl border border-white/10 hover:bg-white/20 transition-all">
+              + Add Event Date
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-[#121927] border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
+            <div class="text-xs text-stone-400 uppercase tracking-wider font-mono-code">Audition Applicants</div>
+            <div class="text-3xl font-serif-cinzel font-bold text-white mt-2">4,820+</div>
+            <div class="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+              <span>↑ +18.4%</span>
+              <span class="text-stone-500">across 4,000 cities</span>
+            </div>
+            <div class="absolute -right-3 -bottom-3 text-stone-800/40 pointer-events-none">
+              <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+          </div>
+
+          <div class="bg-[#121927] border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
+            <div class="text-xs text-stone-400 uppercase tracking-wider font-mono-code">National Award Nominations</div>
+            <div class="text-3xl font-serif-cinzel font-bold text-amber-400 mt-2">1,248</div>
+            <div class="text-xs text-amber-300 mt-2 flex items-center gap-1">
+              <span>★ Super Woman &amp; Hero</span>
+            </div>
+          </div>
+
+          <div class="bg-[#121927] border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
+            <div class="text-xs text-stone-400 uppercase tracking-wider font-mono-code">Active Slider Banners</div>
+            <div class="text-3xl font-serif-cinzel font-bold text-purple-400 mt-2">6 Slides</div>
+            <div class="text-xs text-purple-300 mt-2 flex items-center gap-1">
+              <span>Optimum: 1200x800px (3:2)</span>
+            </div>
+          </div>
+
+          <div class="bg-[#121927] border border-stone-800 p-5 rounded-2xl relative overflow-hidden">
+            <div class="text-xs text-stone-400 uppercase tracking-wider font-mono-code">Grand Coronation</div>
+            <div class="text-3xl font-serif-cinzel font-bold text-emerald-400 mt-2">Dec 18</div>
+            <div class="text-xs text-emerald-300 mt-2 flex items-center gap-1">
+              <span>Zee Studio Arena, Jaipur</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Activity Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-[#121927] border border-stone-800 rounded-2xl p-5">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-stone-800">
+              <h3 class="font-serif-cinzel font-bold text-base text-white">Recent Audition Leads (2026/27)</h3>
+              <button onclick="switchTab('applications')" class="text-xs text-brand-gold hover:underline">View All →</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-stone-300">
+                <thead class="text-[11px] uppercase bg-stone-900/60 text-stone-400 font-mono-code">
+                  <tr>
+                    <th class="p-3">Applicant</th>
+                    <th class="p-3">Category</th>
+                    <th class="p-3">City / State</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-stone-800">
+                  <tr>
+                    <td class="p-3 font-semibold text-white">Aarohi Sharma</td>
+                    <td class="p-3 text-amber-300">Forever Miss India</td>
+                    <td class="p-3">Jaipur, Rajasthan</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">Shortlisted</span></td>
+                    <td class="p-3 text-right"><button class="text-brand-gold hover:underline">Review</button></td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-semibold text-white">Pooja Deshmukh</td>
+                    <td class="p-3 text-purple-300">Forever Mrs India (G-1)</td>
+                    <td class="p-3">Mumbai, Maharashtra</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">Verification</span></td>
+                    <td class="p-3 text-right"><button class="text-brand-gold hover:underline">Review</button></td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 font-semibold text-white">Rhea Sen</td>
+                    <td class="p-3 text-pink-300">Forever Miss Teen India</td>
+                    <td class="p-3">Kolkata, WB</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold">New Lead</span></td>
+                    <td class="p-3 text-right"><button class="text-brand-gold hover:underline">Review</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Quick Dev Specs Summary Box -->
+          <div class="bg-gradient-to-br from-[#1A2234] to-[#121927] border border-amber-500/30 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center gap-2 text-xs font-mono-code text-amber-300 font-bold uppercase">
+              <span>✦ Admin Tech Architecture</span>
+            </div>
+            <h4 class="font-serif-cinzel font-bold text-white text-base">Backend Requirements for Developer</h4>
+            <p class="text-xs text-stone-300 leading-relaxed">
+              The real backend admin panel will connect to your REST API or Node.js/Express + PostgreSQL / MongoDB backend. Use the <strong>"API &amp; DB Specs"</strong> tab for ready-made schema definitions and endpoints.
+            </p>
+            <div class="p-3 bg-black/40 rounded-xl border border-white/5 space-y-2 text-xs font-mono-code text-stone-300">
+              <div class="flex justify-between"><span>Hero Slider CRUD:</span> <span class="text-emerald-400">Ready</span></div>
+              <div class="flex justify-between"><span>Calendar Events API:</span> <span class="text-emerald-400">Ready</span></div>
+              <div class="flex justify-between"><span>Gemini AI Testimonials:</span> <span class="text-emerald-400">Integrated</span></div>
+              <div class="flex justify-between"><span>Image Aspect Ratio:</span> <span class="text-amber-300">1200x800 (3:2)</span></div>
+            </div>
+            <button onclick="switchTab('api-specs')" class="w-full py-2 bg-amber-400 hover:bg-amber-300 text-brand-darkBlue font-bold text-xs rounded-xl shadow transition-all">
+              Inspect API Endpoints &amp; SQL Schema →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: HERO SLIDER MANAGEMENT -->
+      <section id="view-slider" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+          <div>
+            <div class="flex items-center gap-2 text-xs uppercase font-mono-code text-amber-300 mb-1">
+              <span>Display Specs: 1200 × 800 px (3:2 Aspect Ratio)</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+              Hero Slider Banners Management
+            </h2>
+            <p class="text-xs sm:text-sm text-stone-400 mt-1">
+              Upload, reorder, edit titles, links, and display fit mode for the home hero carousel.
+            </p>
+          </div>
+
+          <button
+            onclick="openAddSlideModal()"
+            class="px-4 py-2.5 bg-brand-gold text-brand-darkBlue font-bold text-xs rounded-xl shadow-md hover:bg-yellow-400 transition-all flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <span>+ Add New Slide Banner</span>
+          </button>
+        </div>
+
+        <!-- Slider Image Size Guidance Box -->
+        <div class="bg-amber-950/30 border border-amber-500/40 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs text-amber-200">
+          <div class="space-y-1">
+            <span class="font-bold text-white uppercase font-mono-code">📐 Recommended Banner Dimensions:</span>
+            <p>Optimal resolution is <strong>1200 × 800 px</strong> (3:2) or <strong>1280 × 720 px</strong> (16:9). Files under 500 KB (.webp / .jpg) load in under 200ms.</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="px-2.5 py-1 bg-black/40 rounded font-mono-code border border-amber-500/30">Auto-Fit Supported</span>
+            <span class="px-2.5 py-1 bg-black/40 rounded font-mono-code border border-amber-500/30">Uncropped Mode</span>
+          </div>
+        </div>
+
+        <!-- Live Slides Table / Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="sliderCardsContainer">
+          <!-- Slide 1 -->
+          <div class="bg-[#121927] border border-stone-800 rounded-2xl overflow-hidden shadow-lg group hover:border-brand-gold/60 transition-all">
+            <div class="relative h-44 bg-stone-900">
+              <img src="https://www.fsia.in/static/media/grand-finale-setup1.webp" alt="Slide 1" class="w-full h-full object-cover">
+              <div class="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded text-[10px] text-amber-300 font-mono-code">Order #1</div>
+              <div class="absolute top-2 right-2 bg-emerald-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold">Active</div>
+            </div>
+            <div class="p-4 space-y-2">
+              <h4 class="font-serif-cinzel font-bold text-white text-sm">Zee Studio Grand Finale Arena</h4>
+              <p class="text-xs text-stone-400">Jaipur, Rajasthan · Live Nationwide Telecast</p>
+              <div class="text-[11px] text-amber-300/80 font-mono-code truncate">Link: https://www.fsia.in/quickapply</div>
+              <div class="pt-3 border-t border-stone-800 flex items-center justify-between text-xs">
+                <button onclick="alert('Demo: Edit slide details')" class="text-stone-300 hover:text-white font-medium">Edit</button>
+                <div class="flex items-center gap-2">
+                  <button onclick="alert('Demo: Move order up/down')" class="text-stone-400 hover:text-white">⇅ Move</button>
+                  <button onclick="alert('Demo: Delete slide')" class="text-red-400 hover:text-red-300">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="bg-[#121927] border border-stone-800 rounded-2xl overflow-hidden shadow-lg group hover:border-brand-gold/60 transition-all">
+            <div class="relative h-44 bg-stone-900">
+              <img src="https://www.fsia.in/static/media/ee4544.6a2d3bd6bf0b169df07e.webp" alt="Slide 2" class="w-full h-full object-cover">
+              <div class="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded text-[10px] text-amber-300 font-mono-code">Order #2</div>
+              <div class="absolute top-2 right-2 bg-emerald-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold">Active</div>
+            </div>
+            <div class="p-4 space-y-2">
+              <h4 class="font-serif-cinzel font-bold text-white text-sm">Miss India 2025 Crowning Moment</h4>
+              <p class="text-xs text-stone-400">Star Crown Conferment by Celebrity Jury</p>
+              <div class="text-[11px] text-amber-300/80 font-mono-code truncate">Link: https://www.fsia.in/pageant-winner</div>
+              <div class="pt-3 border-t border-stone-800 flex items-center justify-between text-xs">
+                <button class="text-stone-300 hover:text-white font-medium">Edit</button>
+                <div class="flex items-center gap-2">
+                  <button class="text-stone-400 hover:text-white">⇅ Move</button>
+                  <button class="text-red-400 hover:text-red-300">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="bg-[#121927] border border-stone-800 rounded-2xl overflow-hidden shadow-lg group hover:border-brand-gold/60 transition-all">
+            <div class="relative h-44 bg-stone-900">
+              <img src="https://www.fsia.in/static/media/exclusive1.webp" alt="Slide 3" class="w-full h-full object-cover">
+              <div class="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded text-[10px] text-amber-300 font-mono-code">Order #3</div>
+              <div class="absolute top-2 right-2 bg-emerald-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold">Active</div>
+            </div>
+            <div class="p-4 space-y-2">
+              <h4 class="font-serif-cinzel font-bold text-white text-sm">National Runway Ramp Walk</h4>
+              <p class="text-xs text-stone-400">Exclusive 60ft Ramp at Zee Studios</p>
+              <div class="text-[11px] text-amber-300/80 font-mono-code truncate">Link: https://www.fsia.in/auditions</div>
+              <div class="pt-3 border-t border-stone-800 flex items-center justify-between text-xs">
+                <button class="text-stone-300 hover:text-white font-medium">Edit</button>
+                <div class="flex items-center gap-2">
+                  <button class="text-stone-400 hover:text-white">⇅ Move</button>
+                  <button class="text-red-400 hover:text-red-300">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: CALENDAR & DATES MANAGEMENT -->
+      <section id="view-calendar" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+              Itinerary &amp; Calendar Management
+            </h2>
+            <p class="text-xs sm:text-sm text-stone-400 mt-1">
+              Add and manage city auditions, masterclass camps, and the grand coronation ceremony dates.
+            </p>
+          </div>
+          <button onclick="alert('Demo: Open Add Event Modal')" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2">
+            <span>+ Add New Event Date</span>
+          </button>
+        </div>
+
+        <div class="bg-[#121927] border border-stone-800 rounded-2xl overflow-hidden shadow-lg">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-stone-300">
+              <thead class="text-[11px] uppercase bg-stone-900/80 text-stone-400 font-mono-code">
+                <tr>
+                  <th class="p-3.5">Date</th>
+                  <th class="p-3.5">Event Name</th>
+                  <th class="p-3.5">Category</th>
+                  <th class="p-3.5">City &amp; Venue</th>
+                  <th class="p-3.5">Timing (IST)</th>
+                  <th class="p-3.5">Status</th>
+                  <th class="p-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-800 font-medium">
+                <tr>
+                  <td class="p-3.5 font-mono-code text-amber-300">2026-10-05</td>
+                  <td class="p-3.5 font-bold text-white">National Pageant Audition Cycle — Batch A</td>
+                  <td class="p-3.5 text-stone-400">Audition</td>
+                  <td class="p-3.5">Jaipur · FSIA Regional Hub</td>
+                  <td class="p-3.5 font-mono-code">10:00 AM</td>
+                  <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">Open</span></td>
+                  <td class="p-3.5 text-right space-x-2">
+                    <button class="text-stone-300 hover:text-white">Edit</button>
+                    <button class="text-red-400 hover:text-red-300">Delete</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-mono-code text-amber-300">2026-12-18</td>
+                  <td class="p-3.5 font-bold text-white">Grand Coronation Ceremony 2026</td>
+                  <td class="p-3.5 text-brand-gold">Coronation Gala</td>
+                  <td class="p-3.5">Jaipur · Zee Studio Arena</td>
+                  <td class="p-3.5 font-mono-code">05:00 PM</td>
+                  <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 text-[10px] font-bold">Confirmed</span></td>
+                  <td class="p-3.5 text-right space-x-2">
+                    <button class="text-stone-300 hover:text-white">Edit</button>
+                    <button class="text-red-400 hover:text-red-300">Delete</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-3.5 font-mono-code text-amber-300">2026-12-20</td>
+                  <td class="p-3.5 font-bold text-white">Super Woman &amp; Super Hero National Awards</td>
+                  <td class="p-3.5 text-yellow-300">National Award</td>
+                  <td class="p-3.5">Jaipur · Zee Studio Stage 2</td>
+                  <td class="p-3.5 font-mono-code">06:00 PM</td>
+                  <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">Scheduled</span></td>
+                  <td class="p-3.5 text-right space-x-2">
+                    <button class="text-stone-300 hover:text-white">Edit</button>
+                    <button class="text-red-400 hover:text-red-300">Delete</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: SUCCESS STORIES & REELS -->
+      <section id="view-stories" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+              Success Stories &amp; AI Testimonials
+            </h2>
+            <p class="text-xs sm:text-sm text-stone-400 mt-1">
+              Manage vertical 9:16 reels, winner quotes, and AI-grounded testimonial generator for missing photos.
+            </p>
+          </div>
+          <button onclick="alert('Demo: Trigger Gemini AI generator')" class="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-brand-maroon text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2">
+            <span>✦ Generate AI Testimonial with Gemini</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div class="bg-[#121927] border border-stone-800 p-4 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Neeharika Bethanapalli</span>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono-code">Photo Verified</span>
+            </div>
+            <p class="text-xs text-stone-400">Miss India 2025 Winner (Telangana)</p>
+            <div class="p-3 bg-black/40 rounded-xl text-xs text-stone-300 italic border border-white/5">
+              "Standing on the Zee Studio grand stage with the national sash was surreal. FSIA recognized my authentic voice."
+            </div>
+            <div class="flex justify-between items-center pt-2 text-xs">
+              <span class="text-stone-500 font-mono-code">3 Reel Slides</span>
+              <button class="text-brand-gold hover:underline">Edit Reel</button>
+            </div>
+          </div>
+
+          <div class="bg-[#121927] border border-purple-500/40 p-4 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white">Kavita Chawla</span>
+              <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-mono-code">✦ AI Grounded</span>
+            </div>
+            <p class="text-xs text-stone-400">Miss India Regional Titleholder (Karnataka)</p>
+            <div class="p-3 bg-black/40 rounded-xl text-xs text-purple-200 italic border border-purple-500/20">
+              "When media archives are incomplete, your work and dedication still speak with clarity. FSIA provided me with a verified digital identity."
+            </div>
+            <div class="flex justify-between items-center pt-2 text-xs">
+              <span class="text-amber-400 font-mono-code">AI Placeholder Mode</span>
+              <button class="text-purple-300 hover:underline">Regenerate AI</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: AUDITION APPLICATIONS -->
+      <section id="view-applications" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+              Audition Applications &amp; Leads CRM
+            </h2>
+            <p class="text-xs sm:text-sm text-stone-400 mt-1">
+              Review and manage incoming registrations from 4,000+ cities across India.
+            </p>
+          </div>
+          <button onclick="alert('Exporting applicants to CSV / Excel')" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-200 font-semibold text-xs rounded-xl border border-stone-700 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>Export to CSV</span>
+          </button>
+        </div>
+
+        <div class="bg-[#121927] border border-stone-800 rounded-2xl overflow-hidden shadow-lg p-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-stone-800">
+            <div class="flex items-center gap-2">
+              <input type="text" placeholder="Filter by name, phone, city..." class="bg-black/50 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white placeholder-stone-500 w-64">
+              <select class="bg-black/50 border border-stone-700 rounded-lg px-3 py-1.5 text-xs text-white">
+                <option>All Categories</option>
+                <option>Miss India</option>
+                <option>Mrs India</option>
+                <option>Miss Teen India</option>
+              </select>
+            </div>
+            <div class="text-xs text-stone-400 font-mono-code">Showing 3 of 4,820 entries</div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-stone-300">
+              <thead class="text-[11px] uppercase bg-stone-900/60 text-stone-400 font-mono-code">
+                <tr>
+                  <th class="p-3">Ref ID</th>
+                  <th class="p-3">Name</th>
+                  <th class="p-3">Category</th>
+                  <th class="p-3">City</th>
+                  <th class="p-3">Phone</th>
+                  <th class="p-3">Submission Date</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-800">
+                <tr>
+                  <td class="p-3 font-mono-code text-amber-300">#FSIA-8821</td>
+                  <td class="p-3 font-semibold text-white">Shreya Singhania</td>
+                  <td class="p-3">Forever Miss India</td>
+                  <td class="p-3">New Delhi</td>
+                  <td class="p-3 font-mono-code">+91-98711-XXXXX</td>
+                  <td class="p-3 font-mono-code">2026-09-23</td>
+                  <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold">Stage 1 Verified</span></td>
+                  <td class="p-3 text-right"><button class="text-brand-gold hover:underline">View Dossier</button></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-mono-code text-amber-300">#FSIA-8820</td>
+                  <td class="p-3 font-semibold text-white">Dr. Ritika Verma</td>
+                  <td class="p-3">Super Woman Award</td>
+                  <td class="p-3">Bengaluru</td>
+                  <td class="p-3 font-mono-code">+91-98450-XXXXX</td>
+                  <td class="p-3 font-mono-code">2026-09-22</td>
+                  <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-bold">Jury Evaluation</span></td>
+                  <td class="p-3 text-right"><button class="text-brand-gold hover:underline">View Dossier</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: WINNERS -->
+      <section id="view-winners" class="space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-stone-800">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+              Winners Hall of Fame
+            </h2>
+            <p class="text-xs sm:text-sm text-stone-400 mt-1">
+              Class 41 registered titleholders across all state and national categories.
+            </p>
+          </div>
+          <button onclick="alert('Demo: Add Winner Record')" class="px-4 py-2.5 bg-brand-gold text-brand-darkBlue font-bold text-xs rounded-xl shadow-md">
+            + Add New Winner Record
+          </button>
+        </div>
+        <div class="p-8 text-center bg-[#121927] border border-stone-800 rounded-2xl text-stone-400 text-xs">
+          Manage profiles for all 2020–2026 winners, photo archives, and coronation citations.
+        </div>
+      </section>
+
+      <!-- TAB 7: COMPLETE DEVELOPER API & DB SPECIFICATION (CRITICAL FOR BACKEND DEV) -->
+      <section id="view-api-specs" class="space-y-8 hidden">
+        <div class="pb-6 border-b border-stone-800">
+          <div class="flex items-center gap-2 text-xs font-mono-code text-amber-300 font-bold uppercase mb-2">
+            <span>✦ Complete Technical Blueprint</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-serif-cinzel font-bold text-white tracking-wide">
+            Developer API &amp; Database Architecture Specifications
+          </h2>
+          <p class="text-xs sm:text-sm text-stone-400 mt-1">
+            This document outlines the exact database tables, REST API contracts, and media standards required to construct the production admin panel.
+          </p>
+        </div>
+
+        <!-- 1. Database Schema Specifications -->
+        <div class="bg-[#121927] border border-stone-800 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-serif-cinzel font-bold text-white text-base">1. PostgreSQL / SQL Database Schema</h3>
+            <button onclick="copySqlSchema()" class="px-3 py-1 bg-white/10 hover:bg-white/20 text-xs rounded-lg text-amber-300 font-mono-code">Copy SQL</button>
+          </div>
+          <p class="text-xs text-stone-400">
+            Execute these DDL commands in your PostgreSQL, Supabase, Neon, or MySQL database to instantiate all tables:
+          </p>
+
+          <pre id="sqlBlock" class="p-4 bg-black/60 rounded-xl text-xs font-mono-code text-emerald-400 overflow-x-auto border border-stone-800 leading-relaxed">
+-- 1. HERO SLIDER TABLE
+CREATE TABLE hero_slides (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    subtitle VARCHAR(255),
+    image_url TEXT NOT NULL,
+    cta_url TEXT DEFAULT 'https://www.fsia.in/quickapply',
+    cta_text VARCHAR(100) DEFAULT 'Explore Details',
+    display_order INT DEFAULT 1,
+    is_active BOOLEAN DEFAULT TRUE,
+    aspect_ratio VARCHAR(20) DEFAULT '3:2', -- 1200x800 px
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. CALENDAR EVENTS & AUDITIONS TABLE
+CREATE TABLE calendar_events (
+    id VARCHAR(100) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    event_type VARCHAR(50) NOT NULL, -- 'pageant', 'award', 'audition', 'ceremony', 'workshop'
+    event_date DATE NOT NULL,
+    time_ist VARCHAR(50) NOT NULL,
+    venue VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    description TEXT,
+    eligibility TEXT,
+    highlights JSONB DEFAULT '[]',
+    cta_text VARCHAR(100) DEFAULT 'Apply for Audition',
+    cta_url TEXT NOT NULL,
+    image_url TEXT,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. WINNER SUCCESS STORIES & REELS TABLE
+CREATE TABLE success_stories (
+    id VARCHAR(100) PRIMARY KEY,
+    winner_name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    location VARCHAR(100) NOT NULL,
+    season VARCHAR(20) NOT NULL,
+    image_url TEXT,
+    has_missing_image BOOLEAN DEFAULT FALSE,
+    quote TEXT NOT NULL,
+    story TEXT NOT NULL,
+    advice TEXT,
+    profile_url TEXT,
+    video_sim_duration INT DEFAULT 15,
+    slides JSONB DEFAULT '[]',
+    ai_generated BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. AUDITION APPLICATIONS & LEADS TABLE
+CREATE TABLE audition_applications (
+    id SERIAL PRIMARY KEY,
+    application_code VARCHAR(50) UNIQUE NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'verified', 'shortlisted', 'rejected'
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);</pre>
+        </div>
+
+        <!-- 2. REST API Endpoints Contract -->
+        <div class="bg-[#121927] border border-stone-800 rounded-2xl p-6 space-y-4">
+          <h3 class="font-serif-cinzel font-bold text-white text-base">2. Standard REST API Routes to Implement</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-stone-300 font-mono-code">
+              <thead class="text-[11px] uppercase bg-stone-900/60 text-stone-400">
+                <tr>
+                  <th class="p-3">Method</th>
+                  <th class="p-3">Endpoint</th>
+                  <th class="p-3">Purpose</th>
+                  <th class="p-3">Auth Required</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-800">
+                <tr>
+                  <td class="p-3 text-emerald-400 font-bold">GET</td>
+                  <td class="p-3 text-white">/api/sliders</td>
+                  <td class="p-3 font-sans">Returns all active hero slides in display_order</td>
+                  <td class="p-3 text-stone-500 font-sans">No (Public)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-blue-400 font-bold">POST</td>
+                  <td class="p-3 text-white">/api/admin/sliders</td>
+                  <td class="p-3 font-sans">Creates a new banner slide with image URL</td>
+                  <td class="p-3 text-amber-300 font-sans">Yes (Bearer JWT)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-yellow-400 font-bold">PUT</td>
+                  <td class="p-3 text-white">/api/admin/sliders/:id</td>
+                  <td class="p-3 font-sans">Updates slide title, link, order, or image</td>
+                  <td class="p-3 text-amber-300 font-sans">Yes (Bearer JWT)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-red-400 font-bold">DELETE</td>
+                  <td class="p-3 text-white">/api/admin/sliders/:id</td>
+                  <td class="p-3 font-sans">Deletes or deactivates slide</td>
+                  <td class="p-3 text-amber-300 font-sans">Yes (Bearer JWT)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-emerald-400 font-bold">GET</td>
+                  <td class="p-3 text-white">/api/events</td>
+                  <td class="p-3 font-sans">Returns upcoming calendar dates and auditions</td>
+                  <td class="p-3 text-stone-500 font-sans">No (Public)</td>
+                </tr>
+                <tr>
+                  <td class="p-3 text-purple-400 font-bold">POST</td>
+                  <td class="p-3 text-white">/api/generate-testimonial</td>
+                  <td class="p-3 font-sans">Invokes Gemini AI to synthesize missing winner quotes</td>
+                  <td class="p-3 text-stone-500 font-sans">Internal Server</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. Image Sizing & Optimization Standards -->
+        <div class="bg-[#121927] border border-stone-800 rounded-2xl p-6 space-y-3">
+          <h3 class="font-serif-cinzel font-bold text-white text-base">3. Media Assets &amp; Sizing Specs</h3>
+          <ul class="text-xs text-stone-300 space-y-2 list-disc pl-5 leading-relaxed">
+            <li><strong>Hero Slider:</strong> 1200 × 800 px (3:2 ratio) or 1920 × 1080 px (16:9). Maximum weight: 450 KB. Formats: WebP, progressive JPEG, PNG.</li>
+            <li><strong>Winner Reels:</strong> 1080 × 1920 px (9:16 vertical ratio). Maximum weight: 600 KB.</li>
+            <li><strong>City Audition Badges:</strong> 400 × 400 px (1:1 square).</li>
+            <li><strong>Media Storage:</strong> AWS S3, Cloudflare R2, Google Cloud Storage, or Firebase Storage with public CDN caching enabled.</li>
+          </ul>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ADD SLIDE MODAL (INTERACTIVE PREVIEW) -->
+  <div id="addSlideModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-[#121927] border border-brand-gold/60 rounded-2xl max-w-lg w-full p-6 text-white space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-stone-800">
+        <h3 class="font-serif-cinzel font-bold text-lg text-white">Add Hero Slider Banner</h3>
+        <button onclick="closeAddSlideModal()" class="text-stone-400 hover:text-white text-lg">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-stone-300 mb-1">Banner Title *</label>
+          <input type="text" id="newSlideTitle" placeholder="e.g. Zee Studio Grand Coronation 2026" class="w-full bg-black/50 border border-stone-700 rounded-lg p-2.5 text-white">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-300 mb-1">Subtitle / Location</label>
+          <input type="text" id="newSlideSubtitle" placeholder="e.g. Jaipur, Rajasthan · Nationwide Telecast" class="w-full bg-black/50 border border-stone-700 rounded-lg p-2.5 text-white">
+        </div>
+        <div>
+          <label class="block font-semibold text-stone-300 mb-1">Image URL (Optimal 1200x800 px) *</label>
+          <input type="url" id="newSlideUrl" placeholder="https://www.fsia.in/static/media/banner.jpg" class="w-full bg-black/50 border border-stone-700 rounded-lg p-2.5 text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-300 mb-1">Display Order</label>
+            <input type="number" id="newSlideOrder" value="4" class="w-full bg-black/50 border border-stone-700 rounded-lg p-2.5 text-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-stone-300 mb-1">CTA Link</label>
+            <input type="text" id="newSlideCta" value="https://www.fsia.in/quickapply" class="w-full bg-black/50 border border-stone-700 rounded-lg p-2.5 text-white">
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-stone-800 flex justify-end gap-3">
+        <button onclick="closeAddSlideModal()" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 rounded-lg text-xs font-semibold">Cancel</button>
+        <button onclick="saveNewSlide()" class="px-5 py-2 bg-brand-gold text-brand-darkBlue font-bold rounded-lg text-xs hover:bg-yellow-400">Save &amp; Publish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Tab switching
+    function switchTab(tabId) {
+      const views = ['dashboard', 'slider', 'calendar', 'stories', 'applications', 'winners', 'api-specs'];
+      views.forEach(v => {
+        const viewEl = document.getElementById(`view-${v}`);
+        const btnEl = document.getElementById(`tab-btn-${v}`);
+        if (viewEl) viewEl.classList.add('hidden');
+        if (btnEl) {
+          btnEl.classList.remove('bg-brand-maroon', 'text-white', 'shadow-sm');
+          btnEl.classList.add('text-stone-400');
+        }
+      });
+
+      const targetView = document.getElementById(`view-${tabId}`);
+      const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (targetView) targetView.classList.remove('hidden');
+      if (targetBtn) {
+        targetBtn.classList.remove('text-stone-400');
+        targetBtn.classList.add('bg-brand-maroon', 'text-white', 'shadow-sm');
+      }
+    }
+
+    // Modal controls
+    function openAddSlideModal() {
+      document.getElementById('addSlideModal').classList.remove('hidden');
+    }
+    function closeAddSlideModal() {
+      document.getElementById('addSlideModal').classList.add('hidden');
+    }
+
+    function saveNewSlide() {
+      const title = document.getElementById('newSlideTitle').value || 'New Coronation Banner';
+      const sub = document.getElementById('newSlideSubtitle').value || 'Jaipur Arena';
+      const img = document.getElementById('newSlideUrl').value || 'https://www.fsia.in/static/media/grand-finale-setup1.webp';
+      const order = document.getElementById('newSlideOrder').value || '4';
+
+      const container = document.getElementById('sliderCardsContainer');
+      const newCard = document.createElement('div');
+      newCard.className = "bg-[#121927] border border-brand-gold rounded-2xl overflow-hidden shadow-lg group transition-all animate-fade-in";
+      newCard.innerHTML = `
+        <div class="relative h-44 bg-stone-900">
+          <img src="${img}" alt="${title}" class="w-full h-full object-cover">
+          <div class="absolute top-2 left-2 bg-black/70 px-2 py-0.5 rounded text-[10px] text-amber-300 font-mono-code">Order #${order}</div>
+          <div class="absolute top-2 right-2 bg-emerald-500 text-white px-2 py-0.5 rounded text-[10px] font-bold">New Published</div>
+        </div>
+        <div class="p-4 space-y-2">
+          <h4 class="font-serif-cinzel font-bold text-white text-sm">${title}</h4>
+          <p class="text-xs text-stone-400">${sub}</p>
+          <div class="pt-3 border-t border-stone-800 flex items-center justify-between text-xs">
+            <span class="text-emerald-400 font-mono-code text-[11px]">Live on Website</span>
+            <button onclick="this.closest('.bg-\\[\\#121927\\]').remove()" class="text-red-400 hover:text-red-300">Remove</button>
+          </div>
+        </div>
+      `;
+      container.prepend(newCard);
+      closeAddSlideModal();
+      alert('Slide banner created in preview! Your developer can connect this form directly to the POST /api/admin/sliders endpoint.');
+    }
+
+    // Copy SQL Schema
+    function copySqlSchema() {
+      const sqlText = document.getElementById('sqlBlock').innerText;
+      navigator.clipboard.writeText(sqlText).then(() => {
+        alert('SQL Schema copied to clipboard!');
+      });
+    }
+
+    // Download standalone HTML file
+    function downloadSelfHtml() {
+      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fsia-admin-panel-developer-preview.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
