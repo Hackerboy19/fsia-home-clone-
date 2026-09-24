@@ -79,7 +79,7 @@ export const FSIAImage: React.FC<FSIAImageProps> = ({
 
   return (
     <div
-      className={`relative overflow-hidden bg-[#EDE8DC] [contain:paint] ${wrapperClass}`}
+      className={`relative overflow-hidden ${wrapperClass.includes('bg-') ? '' : 'bg-[#EDE8DC]'} [contain:paint] ${wrapperClass}`}
       style={{
         ...(aspectRatio ? { aspectRatio } : {}),
         contain: 'paint'
