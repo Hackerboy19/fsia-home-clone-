@@ -115,3 +115,46 @@ export interface PartnerItem {
   label: string;
 }
 
+export interface EventCalendarItem {
+  id: string;
+  title: string;
+  date: string; // ISO YYYY-MM-DD format e.g. "2026-10-15"
+  endDate?: string;
+  time: string; // e.g. "10:00 AM – 6:00 PM IST"
+  type: 'pageant' | 'award' | 'audition' | 'ceremony' | 'workshop';
+  category: string; // e.g. "Forever Miss India", "Super Woman Award"
+  venue: string; // e.g. "Zee Studio Arena, Jaipur"
+  city: string; // e.g. "Jaipur, Rajasthan"
+  description: string;
+  eligibility?: string;
+  highlights: string[];
+  status: 'upcoming' | 'open' | 'active' | 'closing_soon' | 'concluded';
+  ctaText: string;
+  ctaUrl: string;
+  image: string;
+}
+
+export interface SuccessStorySlide {
+  image: string;
+  caption: string;
+  stage: 'City Audition' | 'National Camp' | 'Ramp Finale' | 'Coronation Speech';
+}
+
+export interface SuccessStoryItem {
+  id: string;
+  winnerName: string;
+  title: string;
+  category: string;
+  location: string;
+  season: string;
+  image: string;
+  hasMissingImage?: boolean;
+  quote: string;
+  story: string;
+  advice?: string;
+  profileUrl?: string;
+  videoSimDuration?: number;
+  slides: SuccessStorySlide[];
+  aiGenerated?: boolean;
+}
+

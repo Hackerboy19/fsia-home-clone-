@@ -4,9 +4,11 @@ import { HeroSection } from './components/HeroSection';
 import { TrustStatsSection } from './components/TrustStatsSection';
 import { PageantsSection } from './components/PageantsSection';
 import { AwardsSection } from './components/AwardsSection';
+import { EventsCalendarSection } from './components/EventsCalendarSection';
 import { LatestNewsSection } from './components/LatestNewsSection';
 import { AboutFsiaSection } from './components/AboutFsiaSection';
 import { WinnersSection } from './components/WinnersSection';
+import { SuccessStoriesSection } from './components/SuccessStoriesSection';
 import { GallerySection } from './components/GallerySection';
 import { TestimonialsSection } from './components/TestimonialsSection';
 import { SocialMediaSection } from './components/SocialMediaSection';
@@ -55,6 +57,12 @@ export default function App() {
   const handleNavigate = (sectionId: string) => {
     if (sectionId === 'categories') {
       sectionId = 'pageants';
+    }
+    if (sectionId === 'calendar' || sectionId === 'dates' || sectionId === 'events') {
+      sectionId = 'schedule';
+    }
+    if (sectionId === 'stories' || sectionId === 'reels' || sectionId === 'success') {
+      sectionId = 'success-stories';
     }
     if (sectionId === 'winners') {
       const el = document.getElementById('winners');
@@ -150,6 +158,12 @@ export default function App() {
           onSelectAward={handleSelectAward}
         />
 
+        {/* 5.5. UPCOMING PAGEANT & AWARD DATES CALENDAR */}
+        <EventsCalendarSection
+          onExplorePageants={() => handleNavigate('pageants')}
+          onExploreAwards={() => handleNavigate('awards')}
+        />
+
         {/* 6. LATEST FROM FSIA */}
         <LatestNewsSection onReadArticle={handleReadArticle} />
 
@@ -158,6 +172,9 @@ export default function App() {
 
         {/* 8. WINNERS */}
         <WinnersSection onSelectWinner={handleSelectWinner} />
+
+        {/* 8.5. WINNER SUCCESS STORIES & VIDEO REELS */}
+        <SuccessStoriesSection />
 
         {/* 9. MOMENTS THAT INSPIRE */}
         <GallerySection />

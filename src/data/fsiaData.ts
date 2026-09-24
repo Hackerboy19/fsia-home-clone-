@@ -8,7 +8,9 @@ import {
   SocialPlatformItem,
   TestimonialItem,
   CelebrityItem,
-  PartnerItem
+  PartnerItem,
+  EventCalendarItem,
+  SuccessStoryItem
 } from '../types';
 
 export const FSIA_CONTACT = {
@@ -41,22 +43,30 @@ export const VERIFIED_STATISTICS = [
   {
     label: 'Participants',
     value: '10,000+',
+    numericTarget: 10000,
+    suffix: '+',
     subtext: 'Aspiring candidates evaluated across India'
   },
   {
-    label: 'Contestants',
-    value: '900+',
-    subtext: 'Selected delegates gracing the state and national stages'
-  },
-  {
-    label: 'City Auditions',
+    label: 'Cities Covered',
     value: '4,000+',
+    numericTarget: 4000,
+    suffix: '+',
     subtext: 'Nationwide audition rounds and city chapter selections'
   },
   {
-    label: 'Every City Representation',
-    value: '1 Winner',
-    subtext: 'Crowned from every represented city across India'
+    label: 'Awards Presented',
+    value: '5,000+',
+    numericTarget: 5000,
+    suffix: '+',
+    subtext: 'Prestigious national honors and trophies conferred'
+  },
+  {
+    label: 'Contestants Crowned',
+    value: '900+',
+    numericTarget: 900,
+    suffix: '+',
+    subtext: 'Selected delegates gracing the state and national stages'
   }
 ];
 
@@ -290,6 +300,72 @@ export const WINNERS: WinnerItem[] = [
     location: 'Goa',
     image: 'https://www.fsia.in/static/media/Saartha%20Sameer%20Gore%20-%20Miss%20Forever%20Universe%202025%20Winner.jpg',
     url: 'https://www.fsia.in/miss-universe-2025-winner'
+  },
+  {
+    id: 'w-7',
+    name: 'Shweta Parmar',
+    title: 'Miss India 2024 Winner',
+    season: '2024',
+    year: '2024',
+    category: 'Forever Miss India',
+    location: 'Gujarat',
+    image: 'https://www.fsia.in/static/media/glimp7.4e94b375d70df024292d.webp',
+    url: 'https://www.fsia.in/pageant-winner'
+  },
+  {
+    id: 'w-8',
+    name: 'Priyanka Sharma',
+    title: 'Mrs India 2024 Winner (G-1)',
+    season: '2024',
+    year: '2024',
+    category: 'Forever Mrs India',
+    location: 'Madhya Pradesh',
+    image: 'https://www.fsia.in/static/media/glimp3.63ff9e3b97b10fae1ec7.webp',
+    url: 'https://www.fsia.in/pageant-winner'
+  },
+  {
+    id: 'w-9',
+    name: 'Aashi Agarwal',
+    title: 'Miss Teen India 2024 Winner',
+    season: '2024',
+    year: '2024',
+    category: 'Forever Miss Teen India',
+    location: 'Uttar Pradesh',
+    image: 'https://www.fsia.in/static/media/exclusive1.webp',
+    url: 'https://www.fsia.in/pageant-winner'
+  },
+  {
+    id: 'w-10',
+    name: 'Dr. Meenakshi Rao',
+    title: 'Mrs India 2023 Winner (G-2)',
+    season: '2023',
+    year: '2023',
+    category: 'Forever Mrs India',
+    location: 'Karnataka',
+    image: 'https://www.fsia.in/static/media/glimp2.613cba0798f90b93bdc2.webp',
+    url: 'https://www.fsia.in/pageant-winner'
+  },
+  {
+    id: 'w-11',
+    name: 'Kritika Rathore',
+    title: 'Miss India 2023 Winner',
+    season: '2023',
+    year: '2023',
+    category: 'Forever Miss India',
+    location: 'Rajasthan',
+    image: 'https://www.fsia.in/static/media/glimp1.119142dd64fdf31b60d6.webp',
+    url: 'https://www.fsia.in/pageant-winner'
+  },
+  {
+    id: 'w-12',
+    name: 'Riya Sen',
+    title: 'Miss Teen India 2022 Winner',
+    season: '2022',
+    year: '2022',
+    category: 'Forever Miss Teen India',
+    location: 'West Bengal',
+    image: 'https://www.fsia.in/static/media/finalestudio1.webp',
+    url: 'https://www.fsia.in/pageant-winner'
   }
 ];
 
@@ -910,6 +986,479 @@ export const FSIA_FAQS: FaqItem[] = [
     question: 'Is Forever Star India an officially registered trademark organization?',
     answer: 'Yes. Forever Star India (FSIA) and the Star Logo are registered trademarks under Class 41 with the Government of India, ensuring all awarded titles, certificates, and trophies hold legal protection and verifiable prestige.',
     category: 'General'
+  }
+];
+
+export const UPCOMING_EVENTS: EventCalendarItem[] = [
+  {
+    id: 'ev-1',
+    title: 'Forever Miss & Mrs India 2026 – North India Auditions',
+    date: '2026-09-28',
+    time: '10:00 AM – 6:00 PM IST',
+    type: 'audition',
+    category: 'Forever Miss & Mrs India',
+    venue: 'FSIA Cultural Center / Hub, Connaught Place',
+    city: 'New Delhi',
+    description: 'Preliminary audition round and personal poise evaluation for northern states delegates. Successful candidates earn official city titles and qualification for state rounds.',
+    eligibility: 'Unmarried (Miss) 18–35 yrs, Married (Mrs) G-1 (18–38) & G-2 (39+).',
+    highlights: [
+      'Personal introduction & ramp walk test',
+      'Professional headshot & portfolio review',
+      'Direct city crowning qualification',
+      'Mentorship & media coaching introduction'
+    ],
+    status: 'active',
+    ctaText: 'Quick Apply 2026',
+    ctaUrl: 'https://www.fsia.in/quickapply',
+    image: 'https://www.fsia.in/uploads/Forever-Star-India-Pageant.webp'
+  },
+  {
+    id: 'ev-2',
+    title: 'Forever Miss Teen India 2026 – Poise & Runway Masterclass',
+    date: '2026-10-05',
+    time: '11:00 AM – 3:30 PM IST',
+    type: 'workshop',
+    category: 'Forever Miss Teen India',
+    venue: 'Digital Production Hub & Jaipur Studio',
+    city: 'Jaipur & Online Telecast',
+    description: 'Intensive digital and hybrid ramp-walk masterclass conducted by national choreographers and former titleholders for registered teen contestants across India.',
+    eligibility: 'Young female talents aged 13 to 19 years across all Indian states.',
+    highlights: [
+      'Ramp walk posture and camera projection',
+      'Public speaking and stage microphone mastery',
+      'Confidence building and poise development',
+      'One-on-one feedback from celebrity jury'
+    ],
+    status: 'upcoming',
+    ctaText: 'Teen Pageant Details',
+    ctaUrl: 'https://www.fsia.in/forever-miss-teen-india-new.php',
+    image: 'https://www.fsia.in/static/media/Tanvi%20Yatin%20Khairnar%20-%20Miss%20Teen%20India%202025%20Winner.jpg'
+  },
+  {
+    id: 'ev-3',
+    title: 'Western Zone Pageant Screening & City Crowning (Mumbai Hub)',
+    date: '2026-10-12',
+    time: '10:30 AM – 5:30 PM IST',
+    type: 'audition',
+    category: 'Forever Miss & Mrs India',
+    venue: 'Bandra Cultural Arts Center, Mumbai',
+    city: 'Mumbai, Maharashtra',
+    description: 'Western region offline jury evaluation for Maharashtra, Gujarat, and Goa candidates. Official sashes and city titles awarded during the evening session.',
+    eligibility: 'Registered candidates from western zone city chapters.',
+    highlights: [
+      'Western India city crowning ceremony',
+      'Fashion designer couture presentation',
+      'Televised red carpet interview clips',
+      'Golden Ticket to Zee Studio National Finale'
+    ],
+    status: 'upcoming',
+    ctaText: 'Join Western Audition',
+    ctaUrl: 'https://www.fsia.in/quickapply',
+    image: 'https://www.fsia.in/static/media/exclusive1.webp'
+  },
+  {
+    id: 'ev-4',
+    title: 'Super Woman Award 2026 – Season 8 Nominations Final Deadline',
+    date: '2026-10-25',
+    time: '11:59 PM IST (Online Portal Closes)',
+    type: 'award',
+    category: 'Super Woman Award (Season 8)',
+    venue: 'FSIA National Secretariat & Online Portal',
+    city: 'Jaipur, Rajasthan',
+    description: 'Final submission deadline for Season 8 Super Woman national honors under Class 41 registered trademark. Independent jury evaluation convenes immediately following closure.',
+    eligibility: 'Women entrepreneurs, corporate leaders, doctors, educators, and social reform pioneers.',
+    highlights: [
+      'Government of India Class 41 trademark citation',
+      'National jury verification & credential audit',
+      'Shortlist publication of top national achievers',
+      'Televised feature profile during grand felicitation'
+    ],
+    status: 'closing_soon',
+    ctaText: 'Submit Nomination',
+    ctaUrl: 'https://www.fsia.in/super-woman-award.php',
+    image: 'https://www.fsia.in/uploads/Forever-Star-India-award-season-8.webp'
+  },
+  {
+    id: 'ev-5',
+    title: 'South India Regional Rounds & City Title Crowns (Bengaluru Hub)',
+    date: '2026-11-04',
+    time: '10:00 AM – 6:30 PM IST',
+    type: 'audition',
+    category: 'Forever Miss, Mrs & Teen India',
+    venue: 'The Grand Pavilion, MG Road',
+    city: 'Bengaluru, Karnataka',
+    description: 'Southern regional audition rounds bringing together delegates from Karnataka, Tamil Nadu, Telangana, Andhra Pradesh, and Kerala. Finalists crowned live with city tiaras.',
+    eligibility: 'South zone registered delegates for Miss, Mrs (G-1 & G-2), and Teen categories.',
+    highlights: [
+      'Bilingual eloquence and cultural round',
+      'City crown and sash conferment',
+      'Official video documentary filming',
+      'State-level qualification announcement'
+    ],
+    status: 'upcoming',
+    ctaText: 'Register for South Hub',
+    ctaUrl: 'https://www.fsia.in/quickapply',
+    image: 'https://www.fsia.in/static/media/Neeharika%20Bethanapalli%20-%20Miss%20India%202025%20Winner.jpg'
+  },
+  {
+    id: 'ev-6',
+    title: 'Super Hero & Business Awards 2026 – Laureates Announcement',
+    date: '2026-11-14',
+    time: '4:00 PM – 6:00 PM IST',
+    type: 'award',
+    category: 'Business & Super Hero Awards',
+    venue: 'National Press Guild & Live Telecast',
+    city: 'Jaipur & Pan-India Broadcast',
+    description: 'Official press conference and digital broadcast revealing the verified laureates for Super Hero and Business Excellence Awards across healthcare, defense, startups, and education.',
+    eligibility: 'Verified nominees selected by the FSIA national jury.',
+    highlights: [
+      'Announcement of 100+ national commercial visionaries',
+      'Humanitarian courage citations broadcast live',
+      'National news publication features across 50+ portals',
+      'VIP invitation release for Zee Studio Grand Gala'
+    ],
+    status: 'upcoming',
+    ctaText: 'View Awardees',
+    ctaUrl: 'https://www.fsia.in/business-awards.php',
+    image: 'https://www.fsia.in/uploads/bnpg3.webp'
+  },
+  {
+    id: 'ev-7',
+    title: 'Bharat National Awards 2026 – Season 8 Grand Conferment',
+    date: '2026-11-22',
+    time: '5:00 PM – 9:30 PM IST',
+    type: 'ceremony',
+    category: 'Bharat National Awards',
+    venue: 'Zee Studio Grand Auditorium, Jaipur',
+    city: 'Jaipur, Rajasthan',
+    description: 'High-profile national felicitation ceremony honouring distinguished personalities in science, sports, literature, arts, and civil services with official FSIA gold mementos.',
+    eligibility: 'Award laureates, jury dignitaries, media guests, and invited delegates.',
+    highlights: [
+      'Conferment by national dignitaries and celebrities',
+      'Red carpet media photography and live TV feed',
+      'Gold trophy and verified certificate presentation',
+      'Commemorative national yearbook distribution'
+    ],
+    status: 'upcoming',
+    ctaText: 'Nomination Details',
+    ctaUrl: 'https://www.fsia.in/bharat-national-awards.php',
+    image: 'https://www.fsia.in/static/media/glimp1.119142dd64fdf31b60d6.webp'
+  },
+  {
+    id: 'ev-8',
+    title: 'National Finalists Camp: Grand Choreography & Camera Fitting',
+    date: '2026-12-05',
+    time: '9:00 AM – 7:00 PM IST',
+    type: 'workshop',
+    category: 'National Finale Grooming',
+    venue: 'Zee Studio Production Set, Jaipur',
+    city: 'Jaipur, Rajasthan',
+    description: 'All crowned city finalists report to Zee Studio Jaipur for professional ramp staging, multi-camera lighting checks, haute couture trials, and jury rehearsal sessions.',
+    eligibility: 'Officially qualified city and state titleholders advancing to the national stage.',
+    highlights: [
+      'Runway alignment on the national broadcast stage',
+      'Haute couture evening gown and ethnic wear fittings',
+      'Jury Q&A masterclass and media presence workshop',
+      'Official national portfolio photo shoot'
+    ],
+    status: 'upcoming',
+    ctaText: 'View Stage Gallery',
+    ctaUrl: 'https://www.fsia.in/gallery',
+    image: 'https://www.fsia.in/static/media/ee4544.6a2d3bd6bf0b169df07e.webp'
+  },
+  {
+    id: 'ev-9',
+    title: 'Forever Star India National Pageant 2026 – Grand Finale & Coronation',
+    date: '2026-12-18',
+    time: '5:30 PM – 11:00 PM IST',
+    type: 'ceremony',
+    category: 'Forever Star India Pageant 2026',
+    venue: 'Grand Coronation Arena, Zee Studio Jaipur',
+    city: 'Jaipur, Rajasthan',
+    description: 'The pinnacle event of the season: 900+ delegates take the national stage before a celebrity jury panel. Crowning of Forever Miss India, Forever Mrs India (G-1 & G-2), and Forever Miss Teen India 2026.',
+    eligibility: 'National finalists and accredited attendees.',
+    highlights: [
+      'Live televised broadcast with multi-camera setup',
+      '1 winner crowned from every represented city',
+      'Celebrity guest performances and crowning moments',
+      'Direct ticket to international world pageant circuit'
+    ],
+    status: 'upcoming',
+    ctaText: 'Coronation Details',
+    ctaUrl: 'https://www.fsia.in/quickapply',
+    image: 'https://www.fsia.in/static/media/grand-finale-setup1.webp'
+  },
+  {
+    id: 'ev-10',
+    title: 'Forever Star India National Awards 2026 – Red Carpet Gala Banquet',
+    date: '2026-12-20',
+    time: '6:30 PM – 11:30 PM IST',
+    type: 'ceremony',
+    category: 'FSIA Awards Season 8',
+    venue: 'Zee Studio Grand Ballroom & Banquet Arena',
+    city: 'Jaipur, Rajasthan',
+    description: 'Exclusive red-carpet celebration honoring 2026 awardees of Super Woman, Super Hero, and Business Excellence trophies in the presence of industry leaders and film personalities.',
+    eligibility: 'Verified awardees, VIP sponsors, and media partners.',
+    highlights: [
+      'Red carpet photo call with national press',
+      'Gold trophy conferment under Class 41 trademark',
+      'VIP networking dinner and gala dinner banquet',
+      'National television and digital media broadcast'
+    ],
+    status: 'upcoming',
+    ctaText: 'Award Overview',
+    ctaUrl: 'https://www.fsia.in/super-woman-award.php',
+    image: 'https://www.fsia.in/uploads/Forever-Star-India-award-season-8.webp'
+  },
+  {
+    id: 'ev-11',
+    title: 'International Pageant Delegation Orientation (Miss & Mrs World)',
+    date: '2027-01-10',
+    time: '11:00 AM – 4:00 PM IST',
+    type: 'pageant',
+    category: 'Miss & Mrs World Circuit',
+    venue: 'FSIA International Wing, Jaipur',
+    city: 'Jaipur & Global Circuit',
+    description: 'Orientation briefing for newly crowned 2026 winners preparing for international representation in Miss World, Mrs World, and Miss Universe circuits.',
+    eligibility: 'National crown titleholders selected for international representation.',
+    highlights: [
+      'International pageant protocol and diplomacy briefing',
+      'Global runway choreography and wardrobe planning',
+      'Sponsorship endorsement allocations',
+      'Official India flag-bearer ceremony'
+    ],
+    status: 'upcoming',
+    ctaText: 'International Pageants',
+    ctaUrl: 'https://www.fsia.in/miss-world-beauty-pageant.php',
+    image: 'https://www.fsia.in/static/media/glimp7.4e94b375d70df024292d.webp'
+  },
+  {
+    id: 'ev-12',
+    title: 'FSIA 2027 Nationwide Audition Tour Launch & City Director Meet',
+    date: '2027-01-24',
+    time: '10:00 AM – 5:00 PM IST',
+    type: 'workshop',
+    category: 'Season 2027 Kickoff',
+    venue: 'Hotel Clarks Amer / FSIA HQ, Jaipur',
+    city: 'Jaipur, Rajasthan',
+    description: 'Official rollout of the 2027 audition calendar spanning 4,000+ cities with state franchise heads, regional coordinators, and brand sponsors.',
+    eligibility: 'City directors, state coordinators, and franchise partners.',
+    highlights: [
+      'Announcement of 4,000+ city chapter coordinators',
+      'New digital scoring system demonstration',
+      'Franchise partner recognitions',
+      'Season 2027 audition handbook release'
+    ],
+    status: 'upcoming',
+    ctaText: 'Franchise Inquiries',
+    ctaUrl: 'https://www.fsia.in/online-franchise-application',
+    image: 'https://www.fsia.in/uploads/Forever-Star-India-Pageant.webp'
+  }
+];
+
+export const SUCCESS_STORIES: SuccessStoryItem[] = [
+  {
+    id: 'story-1',
+    winnerName: 'Neeharika Bethanapalli',
+    title: 'Miss India 2025 Winner',
+    category: 'Forever Miss India',
+    location: 'Telangana',
+    season: '2025',
+    image: 'https://www.fsia.in/static/media/Neeharika%20Bethanapalli%20-%20Miss%20India%202025%20Winner.jpg',
+    quote: 'Standing on the Zee Studio grand stage with the national sash was surreal. FSIA recognized my authentic voice and gave me a platform with nationwide credibility.',
+    story: 'From the initial city audition screening to the intensive runway camp at Jaipur, Neeharika honed her oratorical clarity and catwalk poise, culminating in a unanimous coronation victory.',
+    advice: 'Never let self-doubt dim your ambition. Authenticity and discipline always outshine pretense on the national runway.',
+    profileUrl: 'https://www.fsia.in/miss-india-2025-winner',
+    videoSimDuration: 15,
+    slides: [
+      {
+        image: 'https://www.fsia.in/static/media/Neeharika%20Bethanapalli%20-%20Miss%20India%202025%20Winner.jpg',
+        caption: 'City Crowning: Representing Telangana with elegance and poise.',
+        stage: 'City Audition'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/grand-finale-setup1.webp',
+        caption: 'Zee Studio Staging: Navigating high-fashion choreography under studio lights.',
+        stage: 'Ramp Finale'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/ee4544.6a2d3bd6bf0b169df07e.webp',
+        caption: 'National Coronation: Conferred the official Class 41 registered Star Crown.',
+        stage: 'Coronation Speech'
+      }
+    ]
+  },
+  {
+    id: 'story-2',
+    winnerName: 'Anjali Sinha',
+    title: 'Mrs India 2025 Winner (G-1)',
+    category: 'Forever Mrs India',
+    location: 'Delhi NCR',
+    season: '2025',
+    image: 'https://www.fsia.in/static/media/Anjali%20Sinha%20-%20Mrs%20India%202025%20Winner%20%28G-1%29.jpg',
+    quote: 'FSIA proved that marriage and motherhood are not pauses, but powerful accelerators of our strength, poise, and societal leadership.',
+    story: 'Anjali balanced family responsibilities with rigorous preparation, impressing the celebrity jury with her eloquence during the intellectual and personality evaluation rounds.',
+    advice: 'Your achievements as a married woman deserve the grandest spotlight. Never hesitate to claim your stage.',
+    profileUrl: 'https://www.fsia.in/anjali-sinha-mrs-jamshedpur-2025',
+    videoSimDuration: 18,
+    slides: [
+      {
+        image: 'https://www.fsia.in/static/media/Anjali%20Sinha%20-%20Mrs%20India%202025%20Winner%20%28G-1%29.jpg',
+        caption: 'G-1 Titleholder: Exemplifying grace and contemporary leadership.',
+        stage: 'City Audition'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/exclusive1.webp',
+        caption: 'Haute Couture Round: Custom bridal couture runway showcase.',
+        stage: 'Ramp Finale'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/glimp3.63ff9e3b97b10fae1ec7.webp',
+        caption: 'National Felicitation: Celebrated with family and mentors at Zee Studio.',
+        stage: 'Coronation Speech'
+      }
+    ]
+  },
+  {
+    id: 'story-3',
+    winnerName: 'Bhumika Songara',
+    title: 'Mrs India 2025 Winner (G-2)',
+    category: 'Forever Mrs India',
+    location: 'Rajasthan',
+    season: '2025',
+    image: 'https://www.fsia.in/static/media/Bhumika%20Songara%20-%20Mrs%20India%202025%20Winner%20(G-2).jpg',
+    quote: 'At 40+, FSIA gave me the grandest runway in India. True beauty is forged in life experience, confidence, and resilience.',
+    story: 'Representing Group-2 (Ages 39+), Bhumika inspired delegates nationwide by demonstrating that age brings unmatched depth, elegance, and stage command.',
+    advice: 'Age is an asset of wisdom. Celebrate every milestone with pride on the national stage.',
+    profileUrl: 'https://www.fsia.in/mrs-india-2025-winner-bhumika',
+    videoSimDuration: 15,
+    slides: [
+      {
+        image: 'https://www.fsia.in/static/media/Bhumika%20Songara%20-%20Mrs%20India%202025%20Winner%20(G-2).jpg',
+        caption: 'Rajasthan Pride: Winning the G-2 state coronation.',
+        stage: 'City Audition'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/glimp2.613cba0798f90b93bdc2.webp',
+        caption: 'Runway Command: Effortless stride on the 60-foot Zee Studio ramp.',
+        stage: 'Ramp Finale'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/glimp1.119142dd64fdf31b60d6.webp',
+        caption: 'Crown Conferment: Gold sash presentation by national dignitaries.',
+        stage: 'Coronation Speech'
+      }
+    ]
+  },
+  {
+    id: 'story-4',
+    winnerName: 'Tanvi Yatin Khairnar',
+    title: 'Miss Teen India 2025 Winner',
+    category: 'Forever Miss Teen India',
+    location: 'Maharashtra',
+    season: '2025',
+    image: 'https://www.fsia.in/static/media/Tanvi%20Yatin%20Khairnar%20-%20Miss%20Teen%20India%202025%20Winner.jpg',
+    quote: 'As a teenager, having access to national media coaching and runway mentors gave me the courage to advocate for education and youth empowerment.',
+    story: 'Tanvi emerged as a youth role model across 4,000 cities, combining poise, academic dedication, and public speaking mastery to earn the Teen India national title.',
+    advice: 'Start young, stay curious, and let your inner conviction be your loudest voice.',
+    profileUrl: 'https://www.fsia.in/miss-teen-india-2025-winner',
+    videoSimDuration: 14,
+    slides: [
+      {
+        image: 'https://www.fsia.in/static/media/Tanvi%20Yatin%20Khairnar%20-%20Miss%20Teen%20India%202025%20Winner.jpg',
+        caption: 'Youth Pioneer: The vibrant face of young India.',
+        stage: 'City Audition'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/exclusive1.webp',
+        caption: 'Choreography Masterclass: Perfecting runway turns and camera poise.',
+        stage: 'National Camp'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/glimp7.4e94b375d70df024292d.webp',
+        caption: 'Crowning Moment: Conferred the Miss Teen India national tiara.',
+        stage: 'Coronation Speech'
+      }
+    ]
+  },
+  {
+    id: 'story-5',
+    winnerName: 'Dr Srujana Devi',
+    title: 'Miss Forever Universe India 2025',
+    category: 'Miss Forever Universe',
+    location: 'Andhra Pradesh',
+    season: '2025',
+    image: 'https://www.fsia.in/static/media/Dr%20Srujana%20Devi%20-%20Miss%20Forever%20Universe%20India%202025.jpg',
+    quote: 'As a medical professional, FSIA provided the bridge between science and advocacy, demonstrating that intelligence and elegance walk hand in hand.',
+    story: 'Dr. Srujana captivated the jury panel with her humanitarian vision and medical advocacy, proving that modern pageantry elevates accomplished professionals to global ambassadors.',
+    advice: 'Use the pageant platform to amplify your professional calling and serve society.',
+    profileUrl: 'https://www.fsia.in/miss-visakhapatnam-2025-dr-srujana-devi',
+    videoSimDuration: 16,
+    slides: [
+      {
+        image: 'https://www.fsia.in/static/media/Dr%20Srujana%20Devi%20-%20Miss%20Forever%20Universe%20India%202025.jpg',
+        caption: 'Doctor & Titleholder: A shining example of purposeful beauty.',
+        stage: 'City Audition'
+      },
+      {
+        image: 'https://www.fsia.in/static/media/glimp1.119142dd64fdf31b60d6.webp',
+        caption: 'Global Circuit: Preparing for international Universe delegation.',
+        stage: 'Ramp Finale'
+      }
+    ]
+  },
+  {
+    id: 'story-6',
+    winnerName: 'Saartha Sameer Gore',
+    title: 'Miss Forever Universe 2025 Winner',
+    category: 'Miss Forever Universe',
+    location: 'Goa',
+    season: '2025',
+    image: 'https://www.fsia.in/static/media/Saartha%20Sameer%20Gore%20-%20Miss%20Forever%20Universe%202025%20Winner.jpg',
+    quote: 'From Goa’s coastal auditions to the national spotlight, FSIA transformed my self-belief into an unstoppable force on the runway.',
+    story: 'Saartha brought radiant charisma and environmental advocacy to the stage, winning high marks across all five rounds of competition.',
+    advice: 'Own your narrative. No one can represent your story better than yourself.',
+    profileUrl: 'https://www.fsia.in/miss-universe-2025-winner',
+    videoSimDuration: 15,
+    slides: [
+      {
+        image: 'https://www.fsia.in/static/media/Saartha%20Sameer%20Gore%20-%20Miss%20Forever%20Universe%202025%20Winner.jpg',
+        caption: 'Universe Crown: Triumphant coronation on the Zee Studio set.',
+        stage: 'Coronation Speech'
+      }
+    ]
+  },
+  {
+    id: 'story-7',
+    winnerName: 'Kavita Chawla',
+    title: 'Miss India Regional Titleholder',
+    category: 'Forever Miss India',
+    location: 'Karnataka',
+    season: '2025',
+    image: '', // Intentionally missing image to showcase AI placeholder testimonial!
+    hasMissingImage: true,
+    quote: 'When media archives are incomplete, your work and dedication still speak with clarity. FSIA provided me with a verified digital identity and national validation.',
+    story: 'Kavita advanced through the Bengaluru regional screening, establishing herself as an entrepreneur and runway talent through perseverance and community work.',
+    advice: 'Never wait for external validation; build your portfolio with courage and clarity.',
+    profileUrl: 'https://www.fsia.in/pageant-winner',
+    videoSimDuration: 15,
+    slides: []
+  },
+  {
+    id: 'story-8',
+    winnerName: 'Sunita Mehra',
+    title: 'Super Woman National Awardee',
+    category: 'Super Woman Award',
+    location: 'Punjab',
+    season: '2025',
+    image: '', // Intentionally missing image to showcase AI placeholder testimonial!
+    hasMissingImage: true,
+    quote: 'Receiving the Super Woman trophy under Class 41 trademark was a testament that grassroot social reform deserves national celebration.',
+    story: 'Sunita spearheaded rural literacy campaigns across 40 villages before being nominated and recognized by the FSIA national jury panel.',
+    advice: 'Service to others is the highest form of personal achievement.',
+    profileUrl: 'https://www.fsia.in/super-woman-award.php',
+    videoSimDuration: 15,
+    slides: []
   }
 ];
 

@@ -536,7 +536,9 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
                 <a href="#pageants" onClick={(e) => handleNavClick('pageants', e)}>Pageants</a>
                 <a href="#awards" onClick={(e) => handleNavClick('awards', e)}>Awards</a>
+                <a href="#schedule" onClick={(e) => handleNavClick('schedule', e)}>Dates Calendar</a>
                 <a href="#winners" onClick={(e) => handleNavClick('winners', e)}>Winners</a>
+                <a href="#success-stories" onClick={(e) => handleNavClick('success-stories', e)}>Success Stories</a>
                 <a href="#team" onClick={(e) => handleNavClick('team', e)}>Our Team</a>
                 <a href="https://www.fsia.in/news-coverage.php" target="_blank" rel="noopener noreferrer">News</a>
                 <a href="https://www.fsia.in/online-franchise-application" target="_blank" rel="noopener noreferrer">Franchise</a>
@@ -619,7 +621,28 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
                 <nav className="pills" id="fsiaPills" aria-label="Quick links">
                   <div className="pills-in">
-                    <a href="https://www.fsia.in/best-achievers-in-india" className="active">Achievers</a>
+                    <a
+                      href="#schedule"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onNavigate?.('schedule');
+                      }}
+                      className="active"
+                      title="View Upcoming Pageant & Award Dates Calendar"
+                    >
+                      ★ 2026/27 Calendar
+                    </a>
+                    <a
+                      href="#success-stories"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onNavigate?.('success-stories');
+                      }}
+                      title="Watch Winner Video Reels & Success Stories"
+                    >
+                      ▶ Video Reels
+                    </a>
+                    <a href="https://www.fsia.in/best-achievers-in-india">Achievers</a>
                     <a href="https://www.fsia.in/all-india-pageant-contestant">Contestants</a>
                     <a href="https://www.fsia.in/top-awardee-in-india">Awardees</a>
                     <a href="https://www.fsia.in/model-gallery">Gallery</a>

@@ -9,7 +9,15 @@ import {
   ExternalLink,
   Settings,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Image as ImageIcon,
+  Plus,
+  Smartphone,
+  Monitor,
+  ZoomIn,
+  ZoomOut,
+  X,
+  Sparkles
 } from 'lucide-react';
 import { FSIAImage } from './FSIAImage';
 import { SliderTimerOptionsModal, SlideTimerConfig } from './SliderTimerOptionsModal';
@@ -102,7 +110,7 @@ export const DEFAULT_HERO_SLIDES: SlideTimerConfig[] = [
   }
 ];
 
-const STORAGE_KEY = 'fsia_hero_slider_settings_v3';
+const STORAGE_KEY = 'fsia_hero_slider_settings_v4';
 
 export const HeroSlider: React.FC = () => {
   // Load initial slides from localStorage or fallback to defaults
@@ -111,17 +119,7 @@ export const HeroSlider: React.FC = () => {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((s: SlideTimerConfig, i: number) => {
-            const defaultSlide = DEFAULT_HERO_SLIDES[i] || DEFAULT_HERO_SLIDES[0];
-            return {
-              ...defaultSlide,
-              ...s,
-              ctaUrl: s.ctaUrl || defaultSlide.ctaUrl || 'https://www.fsia.in/quickapply',
-              ctaText: s.ctaText || defaultSlide.ctaText || 'Quick Apply'
-            };
-          });
-        }
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {
       // Fallback
@@ -130,28 +128,67 @@ export const HeroSlider: React.FC = () => {
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const [isAutoPlayActive, setIsAutoPlayActive] = useState(true);
   const [progressPercent, setProgressPercent] = useState(0);
-  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
 
-  // Real-time ticking clock timestamp for live countdowns
-  const [nowTime, setNowTime] = useState<number>(() => Date.now());
+  // Display size tracking hook (window resize listener with debounce)
+  const [displayWidth, setDisplayWidth] = useState<number>(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1200
+  );
+
+  useEffect(() => {
+    let timeoutId: number;
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        setDisplayWidth(window.innerWidth);
+      }, 50);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const isMobileDisplay = displayWidth < 640;
+  const isTabletDisplay = displayWidth >= 640 && displayWidth < 1024;
+
+  // Schedule & Timer Options Modal State
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [modalInitialSlideId, setModalInitialSlideId] = useState<string | undefined>(undefined);
+
+  // Fullscreen / Zoom Lightbox state for examining fine flyer text on any display
+  const [isZoomModalOpen, setIsZoomModalOpen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   // Touch Swipe coordinates
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
 
   const totalSlides = slides.length;
-  const currentSlide = slides[currentIndex] || slides[0];
+  const currentSlide = slides[currentIndex] || slides[0] || DEFAULT_HERO_SLIDES[0];
 
-  // Keep live time ticking every second
-  useEffect(() => {
-    const clockInterval = setInterval(() => {
-      setNowTime(Date.now());
-    }, 1000);
-    return () => clearInterval(clockInterval);
-  }, []);
+  // Helper to determine display-effective fit mode for each slide
+  const getEffectiveFitMode = useCallback(
+    (slide: SlideTimerConfig): 'contain' | 'cover' => {
+      if (slide.fitMode === 'contain') return 'contain';
+      if (slide.fitMode === 'cover') return 'cover';
+      
+      // If 'auto' (Display Adaptive):
+      // Posters with text need 'contain' so crucial dates, cities, and URLs aren't cut off
+      const isFlyer = /pageant|award|audition|poster|flyer|trophy|season\s*\d+/i.test(
+        `${slide.title} ${slide.badge} ${slide.image}`
+      );
+      if (isFlyer) return 'contain';
+
+      // Stage / catwalk landscape photos:
+      // On mobile screens, 'contain' ensures stage edges aren't sliced, while on desktop 'cover' fills arena
+      return isMobileDisplay ? 'contain' : 'cover';
+    },
+    [isMobileDisplay]
+  );
 
   const handleNext = useCallback(() => {
     setProgressPercent(0);
@@ -168,13 +205,15 @@ export const HeroSlider: React.FC = () => {
     setCurrentIndex(index);
   };
 
-  // Toggle image fit mode (contain vs cover) on the active slide
-  const toggleActiveFitMode = () => {
-    const updated = slides.map((s, idx) =>
-      idx === currentIndex
-        ? { ...s, fitMode: s.fitMode === 'contain' ? ('cover' as const) : ('contain' as const) }
-        : s
-    );
+  // Cycle image fit mode on the active slide: auto -> contain -> cover -> auto
+  const cycleActiveFitMode = () => {
+    const updated = slides.map((s, idx) => {
+      if (idx !== currentIndex) return s;
+      const currentFit = s.fitMode;
+      const nextFit: 'contain' | 'cover' | 'auto' =
+        currentFit === 'auto' ? 'contain' : currentFit === 'contain' ? 'cover' : 'auto';
+      return { ...s, fitMode: nextFit };
+    });
     setSlides(updated);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -183,44 +222,103 @@ export const HeroSlider: React.FC = () => {
     }
   };
 
+  const handleOpenChangeImage = () => {
+    setModalInitialSlideId(currentSlide.id);
+    setIsOptionsModalOpen(true);
+  };
+
+  const handleOpenAddSlide = () => {
+    const newIndex = slides.length + 1;
+    const newSlide: SlideTimerConfig = {
+      id: `slide-${Date.now()}`,
+      image: 'https://www.fsia.in/uploads/Forever-Star-India-Pageant.webp',
+      title: `Forever Star India Announcement ${newIndex}`,
+      categoryTag: 'National Recognition',
+      venue: 'Zee Studio Arena • Jaipur, Rajasthan',
+      subtitle: 'Class 41 registered national beauty pageant and honors initiative across 4,000+ Indian cities.',
+      badge: `Feature ${newIndex}`,
+      alt: `Forever Star India Slide ${newIndex}`,
+      ctaText: 'Quick Apply 2026',
+      ctaUrl: 'https://www.fsia.in/quickapply',
+      fitMode: 'auto',
+      startDate: new Date().toISOString().slice(0, 16),
+      endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+      timerDuration: 6,
+      showCountdown: true
+    };
+    const updated = [...slides, newSlide];
+    setSlides(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    } catch {
+      // Ignore
+    }
+    setCurrentIndex(updated.length - 1);
+    setModalInitialSlideId(newSlide.id);
+    setIsOptionsModalOpen(true);
+  };
+
   // Slide display progress timer
   const animFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isAutoPlayActive || isHovered) {
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       return;
     }
 
-    const durationMs = Math.max(3, currentSlide.timerDuration || 5) * 1000;
-    let startTimestamp = performance.now() - (progressPercent / 100) * durationMs;
-    startTimeRef.current = startTimestamp;
+    const durationMs = Math.max(2, currentSlide.timerDuration || 5) * 1000;
+    startTimeRef.current = null;
 
-    const step = (now: number) => {
-      const elapsed = now - startTimestamp;
-      const pct = Math.min(100, (elapsed / durationMs) * 100);
+    const tick = (timestamp: number) => {
+      if (!startTimeRef.current) startTimeRef.current = timestamp;
+      const elapsed = timestamp - startTimeRef.current;
+      const pct = Math.min((elapsed / durationMs) * 100, 100);
       setProgressPercent(pct);
 
-      if (pct >= 100) {
-        handleNext();
+      if (elapsed < durationMs) {
+        animFrameRef.current = requestAnimationFrame(tick);
       } else {
-        animFrameRef.current = requestAnimationFrame(step);
+        handleNext();
       }
     };
 
-    animFrameRef.current = requestAnimationFrame(step);
+    animFrameRef.current = requestAnimationFrame(tick);
 
     return () => {
-      if (animFrameRef.current) {
-        cancelAnimationFrame(animFrameRef.current);
-      }
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isAutoPlayActive, isHovered, currentIndex, currentSlide.timerDuration, handleNext, progressPercent]);
+  }, [currentIndex, isAutoPlayActive, isHovered, currentSlide.timerDuration, handleNext]);
 
-  // Touch Swipe handlers
+  // Preload adjacent slides for instantaneous transitions across any display size
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const nextIdx = (currentIndex + 1) % slides.length;
+    const prevIdx = (currentIndex - 1 + slides.length) % slides.length;
+    [slides[nextIdx]?.image, slides[prevIdx]?.image].forEach((src) => {
+      if (src && typeof window !== 'undefined') {
+        const img = new Image();
+        img.src = src;
+      }
+    });
+  }, [currentIndex, slides]);
+
+  // Keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      handlePrev();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      handleNext();
+    } else if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      setIsAutoPlayActive((prev) => !prev);
+    }
+  };
+
+  // Touch Swipe handlers for mobile screens
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEndX(null);
     setTouchStartX(e.targetTouches[0].clientX);
@@ -233,95 +331,17 @@ export const HeroSlider: React.FC = () => {
   const handleTouchEnd = () => {
     if (touchStartX === null || touchEndX === null) return;
     const distance = touchStartX - touchEndX;
-    const minSwipeDistance = 45;
-    if (distance > minSwipeDistance) {
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    if (isLeftSwipe) {
       handleNext();
-    } else if (distance < -minSwipeDistance) {
+    } else if (isRightSwipe) {
       handlePrev();
     }
     setTouchStartX(null);
     setTouchEndX(null);
   };
 
-  // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight') {
-      handleNext();
-    } else if (e.key === 'ArrowLeft') {
-      handlePrev();
-    } else if (e.key === ' ') {
-      e.preventDefault();
-      setIsAutoPlayActive((prev) => !prev);
-    }
-  };
-
-  // Helper to calculate live countdown status
-  const getTimelineDetails = (startDateStr: string, endDateStr: string) => {
-    const start = new Date(startDateStr).getTime();
-    const end = new Date(endDateStr).getTime();
-
-    if (isNaN(start) || isNaN(end)) {
-      return {
-        status: 'unknown' as const,
-        label: 'Active Timeline',
-        countdownText: 'Timeline in Progress',
-        isUrgent: false
-      };
-    }
-
-    if (nowTime < start) {
-      const diff = Math.max(0, start - nowTime);
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-      return {
-        status: 'upcoming' as const,
-        label: 'Auditions Open In',
-        countdownText: `${days}d ${hours}h ${minutes}m ${seconds}s`,
-        isUrgent: false
-      };
-    }
-
-    if (nowTime > end) {
-      return {
-        status: 'ended' as const,
-        label: 'Auditions Closed',
-        countdownText: 'Official Schedule Concluded',
-        isUrgent: false
-      };
-    }
-
-    const diff = Math.max(0, end - nowTime);
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const minutes = Math.floor((diff / 1000 / 60) % 60);
-    const seconds = Math.floor((diff / 1000) % 60);
-    const isUrgent = days <= 15;
-
-    return {
-      status: 'active' as const,
-      label: 'Nominations & Auditions Close In',
-      countdownText: `${days}d ${hours}h ${minutes}m ${seconds}s`,
-      isUrgent
-    };
-  };
-
-  const timeline = getTimelineDetails(currentSlide.startDate, currentSlide.endDate);
-
-  // Format date range nicely
-  const formatDateRange = (startStr: string, endStr: string) => {
-    try {
-      const d1 = new Date(startStr);
-      const d2 = new Date(endStr);
-      const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-      return `${d1.toLocaleDateString('en-US', opts)} — ${d2.toLocaleDateString('en-US', opts)}`;
-    } catch {
-      return 'Official 2026 Schedule';
-    }
-  };
-
-  // Save updated slides from options modal
   const handleSaveOptions = (updatedSlides: SlideTimerConfig[]) => {
     setSlides(updatedSlides);
     try {
@@ -329,9 +349,11 @@ export const HeroSlider: React.FC = () => {
     } catch {
       // Ignore
     }
+    if (currentIndex >= updatedSlides.length) {
+      setCurrentIndex(0);
+    }
   };
 
-  // Reset to default slides
   const handleResetOptions = () => {
     setSlides(DEFAULT_HERO_SLIDES);
     try {
@@ -339,7 +361,66 @@ export const HeroSlider: React.FC = () => {
     } catch {
       // Ignore
     }
+    setCurrentIndex(0);
   };
+
+  // Calculate schedule state and countdown string
+  const calculateTimeline = (startDateStr: string, endDateStr: string) => {
+    const now = new Date().getTime();
+    const start = new Date(startDateStr).getTime();
+    const end = new Date(endDateStr).getTime();
+
+    if (isNaN(start) || isNaN(end)) {
+      return { status: 'active', label: 'Auditions Open', countdownText: 'Registrations Open', isUrgent: false };
+    }
+
+    if (now < start) {
+      const diff = start - now;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      return {
+        status: 'upcoming',
+        label: 'Starts In',
+        countdownText: `${days}d ${hours}h remaining`,
+        isUrgent: false
+      };
+    } else if (now >= start && now <= end) {
+      const diff = end - now;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const isUrgent = days <= 7;
+      return {
+        status: 'active',
+        label: isUrgent ? 'CLOSING SOON' : 'Closes In',
+        countdownText: `${days}d ${hours}h remaining`,
+        isUrgent
+      };
+    } else {
+      return {
+        status: 'concluded',
+        label: 'Registration Closed',
+        countdownText: 'Auditions Concluded',
+        isUrgent: false
+      };
+    }
+  };
+
+  const timeline = calculateTimeline(currentSlide.startDate, currentSlide.endDate);
+
+  const formatDateRange = (startStr: string, endStr: string) => {
+    try {
+      const s = new Date(startStr);
+      const e = new Date(endStr);
+      if (isNaN(s.getTime()) || isNaN(e.getTime())) return 'Season 2026 Schedule';
+      const sFormatted = s.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      const eFormatted = e.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `${sFormatted} – ${eFormatted}`;
+    } catch {
+      return 'Season 2026 Schedule';
+    }
+  };
+
+  const activeEffectiveFit = getEffectiveFitMode(currentSlide);
 
   return (
     <div
@@ -356,7 +437,7 @@ export const HeroSlider: React.FC = () => {
       aria-roledescription="carousel"
       aria-label="Forever Star India Stage Announcements and Crowning Moments Slider"
     >
-      {/* TOP CONTROLS & ANNOUNCEMENT HEADER STRIP */}
+      {/* TOP CONTROLS & DISPLAY-ADAPTIVE HEADER STRIP */}
       <div className="mb-2 px-2 py-1.5 bg-[#0C1322] border border-[#D4AF37]/40 flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shrink-0" />
@@ -366,28 +447,72 @@ export const HeroSlider: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Fit Toggle Button */}
+          {/* Display Mode & Fit Mode Toggle */}
           <button
             type="button"
-            onClick={toggleActiveFitMode}
-            title={
-              currentSlide.fitMode === 'contain'
-                ? 'Switch to Cover (Fill Container)'
-                : 'Switch to Contain (Show Full Poster Without Cropping)'
-            }
+            onClick={cycleActiveFitMode}
+            title={`Current: ${
+              currentSlide.fitMode === 'auto'
+                ? 'Auto-Adaptive (Screen Aware)'
+                : currentSlide.fitMode === 'contain'
+                ? 'Uncropped Poster (Contain)'
+                : 'Fill Stage (Cover)'
+            }. Click to cycle mode.`}
             className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 text-[10px] font-sans font-semibold rounded-xs transition-colors cursor-pointer"
           >
-            {currentSlide.fitMode === 'contain' ? (
+            {currentSlide.fitMode === 'auto' ? (
+              <>
+                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                <span>Auto-Fit</span>
+              </>
+            ) : currentSlide.fitMode === 'contain' ? (
               <>
                 <Minimize2 className="w-3 h-3 text-[#D4AF37]" />
-                <span className="hidden sm:inline">Uncropped (Full)</span>
+                <span className="hidden sm:inline">Uncropped</span>
+                <span className="sm:hidden">Full</span>
               </>
             ) : (
               <>
                 <Maximize2 className="w-3 h-3 text-[#D4AF37]" />
-                <span className="hidden sm:inline">Fill</span>
+                <span>Fill</span>
               </>
             )}
+          </button>
+
+          {/* Fullscreen / Zoom Lightbox Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setZoomLevel(1);
+              setIsZoomModalOpen(true);
+            }}
+            title="Inspect full image in high-resolution zoom mode"
+            className="p-1 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 rounded-xs transition-colors cursor-pointer"
+            aria-label="Inspect full image"
+          >
+            <ZoomIn className="w-3 h-3 text-[#D4AF37]" />
+          </button>
+
+          {/* Update Image Shortcut Button */}
+          <button
+            type="button"
+            onClick={handleOpenChangeImage}
+            title="Update current slider image or choose from library"
+            className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 text-[10px] font-sans font-semibold rounded-xs transition-colors cursor-pointer"
+          >
+            <ImageIcon className="w-3 h-3 text-[#D4AF37]" />
+            <span className="hidden xs:inline sm:inline">Update</span>
+          </button>
+
+          {/* Add Slide Shortcut Button */}
+          <button
+            type="button"
+            onClick={handleOpenAddSlide}
+            title="Add a new image/slide to the slider"
+            className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#B8860B] hover:bg-[#996515] text-[#0C1322] hover:text-white font-bold text-[10px] rounded-xs transition-colors cursor-pointer shadow-xs"
+          >
+            <Plus className="w-3 h-3" />
+            <span className="hidden xs:inline">+ Add</span>
           </button>
 
           {/* Auto-Play Pause/Resume Button */}
@@ -408,13 +533,16 @@ export const HeroSlider: React.FC = () => {
           {/* Schedule & Timer Options Modal Trigger */}
           <button
             type="button"
-            onClick={() => setIsOptionsModalOpen(true)}
+            onClick={() => {
+              setModalInitialSlideId(currentSlide.id);
+              setIsOptionsModalOpen(true);
+            }}
             id="hero-slider-timer-options-btn"
             title="Configure Start & End Timers for Every Slide"
-            className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#B8860B] hover:bg-[#996515] text-[#0C1322] hover:text-white font-bold text-[10px] rounded-xs transition-colors cursor-pointer shadow-xs"
+            className="p-1 sm:px-2 sm:py-0.5 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 font-bold text-[10px] rounded-xs transition-colors cursor-pointer shadow-xs inline-flex items-center gap-1"
           >
-            <Settings className="w-3 h-3" />
-            <span className="hidden xs:inline sm:inline">Timer Options</span>
+            <Settings className="w-3 h-3 text-[#D4AF37]" />
+            <span className="hidden md:inline">Options</span>
           </button>
 
           {/* Slide Counter */}
@@ -424,71 +552,79 @@ export const HeroSlider: React.FC = () => {
         </div>
       </div>
 
-      {/* VISUAL SLIDER STAGE (Fixed for Mobile & PC with Ambient Lighting Backdrop) */}
-      <div className="relative overflow-hidden bg-[#0B1220] min-h-[380px] h-[380px] sm:min-h-[440px] sm:h-[440px] md:h-[480px] lg:h-[500px] w-full flex items-center justify-center border border-[#D4AF37]/20">
-        
-        {/* Render stacked slides with smooth opacity crossfade - clicking redirects to slide URL */}
+      {/* VISUAL SLIDER STAGE (Dynamically Sized per Display: Mobile, Tablet, Desktop) */}
+      <div
+        className="relative overflow-hidden bg-[#0B1220] w-full flex items-center justify-center border border-[#D4AF37]/20 transition-[height] duration-300 h-[290px] xs:h-[340px] sm:h-[400px] md:h-[460px] lg:h-[490px] xl:h-[520px]"
+      >
+        {/* Render stacked slides with smooth opacity crossfade */}
         {slides.map((slide, index) => {
           const isActive = index === currentIndex;
           const redirectUrl = slide.ctaUrl || 'https://www.fsia.in/quickapply';
+          const slideEffectiveFit = getEffectiveFitMode(slide);
+
           return (
-            <a
+            <div
               key={slide.id}
-              href={redirectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              title={`Click to open: ${slide.title} (${slide.ctaText})`}
-              aria-label={`Open announcement: ${slide.title}`}
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center cursor-pointer group/slide ${
+              className={`absolute inset-0 transition-opacity duration-700 ease-in-out flex items-center justify-center ${
                 isActive ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none'
               }`}
               aria-hidden={!isActive}
             >
-              {/* Layer 1: Ambient Blurred Backdrop so letterbox margins blend beautifully with the image colors */}
+              {/* Layer 1: Ambient Blurred Backdrop (Scaled per display size for cinematic lighting without text blur interference) */}
               <img
                 src={slide.image}
                 alt=""
                 aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-25 scale-110 pointer-events-none"
+                className="absolute inset-0 w-full h-full object-cover blur-xl sm:blur-2xl opacity-20 sm:opacity-25 scale-105 pointer-events-none select-none"
               />
 
-              {/* Layer 2: Main Crisp Image (Uses 'contain' for posters so text is 100% visible on both mobile and PC!) */}
-              <div className="relative z-10 w-full h-full flex items-center justify-center p-1 sm:p-2">
+              {/* Layer 2: Main Crisp Image Adjusted to Display Size */}
+              <a
+                href={redirectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`Click to open: ${slide.title} (${slide.ctaText})`}
+                aria-label={`Open announcement: ${slide.title}`}
+                className="relative z-10 w-full h-full flex items-center justify-center p-0.5 sm:p-1.5 md:p-2.5 cursor-pointer group/slide"
+              >
                 <FSIAImage
                   src={slide.image}
                   alt={slide.alt || slide.title}
-                  className="w-full h-full bg-transparent flex items-center justify-center"
-                  objectFit={slide.fitMode}
+                  className="w-full h-full bg-transparent flex items-center justify-center max-h-full max-w-full"
+                  imgClassName="max-h-full max-w-full drop-shadow-md select-none"
+                  objectFit={slideEffectiveFit}
                   objectPosition="center"
-                  loading={index === 0 ? 'eager' : 'lazy'}
+                  loading={isActive ? 'eager' : 'lazy'}
                   decoding="async"
-                  fetchPriority={index === 0 ? 'high' : 'auto'}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 700px, 600px"
+                  fetchPriority={isActive ? 'high' : 'auto'}
+                  sizes="(max-width: 480px) 100vw, (max-width: 640px) 96vw, (max-width: 1024px) 85vw, (max-width: 1440px) 46vw, 620px"
                 />
-              </div>
 
-              {/* Layer 3: Floating Hover Redirect Pill (Appears on hover to signal interactive link) */}
-              <div className="absolute bottom-4 right-4 z-25 opacity-0 group-hover/slide:opacity-100 transition-all duration-200 pointer-events-none hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-[#0C1322]/90 border border-[#D4AF37] text-[#EADBAC] text-[11px] font-bold tracking-wider uppercase backdrop-blur-md shadow-xl translate-y-1 group-hover/slide:translate-y-0">
-                <span>{slide.ctaText || 'Open Official Page'}</span>
-                <ExternalLink className="w-3.5 h-3.5 text-[#D4AF37]" />
-              </div>
+                {/* Layer 3: Floating Hover Redirect Pill (Desktop) */}
+                <div className="absolute bottom-4 right-4 z-25 opacity-0 group-hover/slide:opacity-100 transition-all duration-200 pointer-events-none hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-[#0C1322]/90 border border-[#D4AF37] text-[#EADBAC] text-[11px] font-bold tracking-wider uppercase backdrop-blur-md shadow-xl translate-y-1 group-hover/slide:translate-y-0">
+                  <span>{slide.ctaText || 'Open Official Page'}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[#D4AF37]" />
+                </div>
+              </a>
 
-              {/* Layer 4: Subtle Vignette at top & bottom for contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0C1322]/80 via-transparent to-[#0C1322]/40 pointer-events-none z-20" />
-            </a>
+              {/* Layer 4: Subtle Vignette for Contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0C1322]/80 via-transparent to-[#0C1322]/30 pointer-events-none z-20" />
+            </div>
           );
         })}
 
         {/* Live Countdown Ribbon on Slide (if enabled) */}
         {currentSlide.showCountdown && (
           <div className="absolute top-3 left-3 z-30 pointer-events-none max-w-[85%] sm:max-w-none">
-            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] sm:text-xs font-mono font-bold tracking-wide border shadow-md backdrop-blur-md ${
-              timeline.isUrgent
-                ? 'bg-rose-950/90 text-amber-200 border-rose-500/80 animate-pulse'
-                : 'bg-[#0C1322]/90 text-[#EADBAC] border-[#D4AF37]/60'
-            }`}>
-              <Clock className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
-              <span className="text-[#FAF7F0] font-sans font-medium text-[9px] sm:text-[10px] uppercase">
+            <div
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-xs font-mono font-bold tracking-wide border shadow-md backdrop-blur-md ${
+                timeline.isUrgent
+                  ? 'bg-rose-950/90 text-amber-200 border-rose-500/80 animate-pulse'
+                  : 'bg-[#0C1322]/90 text-[#EADBAC] border-[#D4AF37]/60'
+              }`}
+            >
+              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#D4AF37] shrink-0" />
+              <span className="text-[#FAF7F0] font-sans font-medium text-[8px] sm:text-[10px] uppercase">
                 {timeline.label}:
               </span>
               <span className="font-bold text-[#EADBAC]">{timeline.countdownText}</span>
@@ -496,15 +632,22 @@ export const HeroSlider: React.FC = () => {
           </div>
         )}
 
+        {/* Display Size / Fit Mode Pill in top-right */}
+        <div className="absolute top-3 right-3 z-30 pointer-events-none hidden xs:inline-flex">
+          <span className="px-2 py-0.5 bg-[#0C1322]/80 border border-[#D4AF37]/50 text-[#EADBAC] text-[9px] font-mono tracking-wider backdrop-blur-xs uppercase">
+            {isMobileDisplay ? '📱 Mobile View' : isTabletDisplay ? '📱 Tablet View' : '💻 Desktop View'} • {activeEffectiveFit}
+          </span>
+        </div>
+
         {/* Left Arrow Button */}
         <button
           type="button"
           onClick={handlePrev}
           id="hero-slider-prev-btn"
           aria-label="Previous Slide"
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-[#0C1322]/85 hover:bg-[#0C1322] text-[#EADBAC] hover:text-white border border-[#D4AF37]/60 shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 flex items-center justify-center bg-[#0C1322]/85 hover:bg-[#0C1322] text-[#EADBAC] hover:text-white border border-[#D4AF37]/60 shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
         >
-          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
         </button>
 
         {/* Right Arrow Button */}
@@ -513,9 +656,9 @@ export const HeroSlider: React.FC = () => {
           onClick={handleNext}
           id="hero-slider-next-btn"
           aria-label="Next Slide"
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center bg-[#0C1322]/85 hover:bg-[#0C1322] text-[#EADBAC] hover:text-white border border-[#D4AF37]/60 shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 flex items-center justify-center bg-[#0C1322]/85 hover:bg-[#0C1322] text-[#EADBAC] hover:text-white border border-[#D4AF37]/60 shadow-lg backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
         >
-          <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+          <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
         </button>
 
         {/* Slide Indicator Dots */}
@@ -564,13 +707,15 @@ export const HeroSlider: React.FC = () => {
             </span>
           </div>
 
-          <span className={`text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-xs border ${
-            timeline.status === 'active'
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-              : timeline.status === 'upcoming'
-              ? 'bg-amber-50 text-amber-800 border-amber-300'
-              : 'bg-neutral-100 text-neutral-700 border-neutral-300'
-          }`}>
+          <span
+            className={`text-[10px] font-sans font-bold uppercase tracking-wider px-2 py-0.5 rounded-xs border ${
+              timeline.status === 'active'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                : timeline.status === 'upcoming'
+                ? 'bg-amber-50 text-amber-800 border-amber-300'
+                : 'bg-neutral-100 text-neutral-700 border-neutral-300'
+            }`}
+          >
             {timeline.status === 'active' ? '● Active Schedule' : timeline.status === 'upcoming' ? '● Upcoming' : '● Concluded'}
           </span>
         </div>
@@ -585,75 +730,193 @@ export const HeroSlider: React.FC = () => {
             className="hover:text-[#B8860B] transition-colors inline-flex items-center gap-1.5 group/title"
           >
             <span>{currentSlide.title}</span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#B8860B] inline opacity-70 group-hover/title:opacity-100 shrink-0" />
+            <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover/title:opacity-100 text-[#B8860B] shrink-0" />
           </a>
         </h3>
 
-        {/* Row 3: Full Non-Truncated Subtitle & Venue Details */}
+        {/* Row 3: Official Venue with Zee Studio Details */}
+        <p className="text-xs font-sans text-[#7E591B] font-semibold flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B] shrink-0" />
+          <span>{currentSlide.venue}</span>
+        </p>
+
+        {/* Row 4: Full Non-Truncated Editorial Description */}
         <p className="text-xs sm:text-sm text-[#475569] font-sans leading-relaxed break-words">
           {currentSlide.subtitle}
         </p>
 
-        {/* Row 4: Venue Info Strip & Redirect URL Display */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#526077] font-sans pt-1 border-t border-[#EADBAC]/40">
-          <div className="flex items-center gap-1.5">
-            <span className="font-semibold text-[#0C1322]">Official Arena:</span>
-            <span>{currentSlide.venue}</span>
-          </div>
-
-          <div className="flex items-center gap-1 text-[#7E591B] bg-white px-2 py-0.5 border border-[#D4AF37]/30 rounded-xs">
-            <span className="text-[#526077]">Redirect URL:</span>
-            <a
-              href={currentSlide.ctaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#B8860B] hover:underline font-mono font-semibold flex items-center gap-1 max-w-[200px] sm:max-w-[280px] truncate"
-            >
-              <span className="truncate">{currentSlide.ctaUrl}</span>
-              <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-            </a>
-          </div>
-        </div>
-
-        {/* Row 5: Action Button & Timer Configuration Button */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <a
-              href={currentSlide.ctaUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0C1322] hover:bg-[#1A253E] text-[#EADBAC] hover:text-white text-xs font-bold tracking-wider uppercase border border-[#D4AF37]/60 shadow-xs transition-colors cursor-pointer"
-            >
-              <span>{currentSlide.ctaText}</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-
-            <span className="text-[11px] text-[#526077] font-sans hidden sm:inline">
-              Slide Timer: <strong>{currentSlide.timerDuration}s</strong>
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsOptionsModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#7E591B] hover:text-[#0C1322] bg-white hover:bg-[#F6F2E8] border border-[#D4AF37]/50 rounded-xs transition-colors cursor-pointer shadow-2xs"
+        {/* Row 5: Action Button & Image Management Bar */}
+        <div className="pt-2 border-t border-[#EADBAC]/60 flex flex-wrap items-center justify-between gap-2.5">
+          <a
+            href={currentSlide.ctaUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0C1322] hover:bg-[#1A253E] text-[#EADBAC] hover:text-white text-xs font-bold uppercase tracking-wider border border-[#D4AF37]/50 shadow-xs transition-colors shrink-0"
           >
-            <Clock className="w-3.5 h-3.5 text-[#B8860B]" />
-            <span>Edit Start / End Timer</span>
-          </button>
+            <span>{currentSlide.ctaText}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+
+          {/* Image & Slider Controls */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setZoomLevel(1);
+                setIsZoomModalOpen(true);
+              }}
+              title="Inspect flyer in full-screen zoom view"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#526077] hover:text-[#0C1322] bg-white hover:bg-[#F6F2E8] border border-neutral-300 rounded-xs transition-colors cursor-pointer shadow-2xs"
+            >
+              <ZoomIn className="w-3.5 h-3.5 text-[#B8860B]" />
+              <span className="hidden sm:inline">Zoom</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenChangeImage}
+              title="Update image, URL, or upload from device"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#7E591B] hover:text-[#0C1322] bg-white hover:bg-[#F6F2E8] border border-[#D4AF37]/50 rounded-xs transition-colors cursor-pointer shadow-2xs"
+            >
+              <ImageIcon className="w-3.5 h-3.5 text-[#B8860B]" />
+              <span>Update Image</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleOpenAddSlide}
+              title="Add a new image/slide to the slider"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[#0C1322] hover:text-white bg-[#EADBAC] hover:bg-[#0C1322] border border-[#D4AF37] rounded-xs transition-colors cursor-pointer shadow-2xs"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#B8860B]" />
+              <span>+ Add Image</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setModalInitialSlideId(currentSlide.id);
+                setIsOptionsModalOpen(true);
+              }}
+              title="Edit start/end dates, timers, and countdowns"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#526077] hover:text-[#0C1322] bg-white hover:bg-[#F6F2E8] border border-neutral-300 rounded-xs transition-colors cursor-pointer shadow-2xs"
+            >
+              <Clock className="w-3.5 h-3.5 text-[#B8860B]" />
+              <span className="hidden sm:inline">Timers</span>
+            </button>
+          </div>
         </div>
 
       </div>
 
-      {/* START & END TIMER / SCHEDULE OPTIONS MODAL */}
+      {/* FULLSCREEN / ZOOM LIGHTBOX MODAL (Optimized for Any Display Size) */}
+      {isZoomModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="High Resolution Flyer Lightbox"
+          className="fixed inset-0 z-50 bg-[#0C1322]/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 animate-fade-in"
+          onClick={() => setIsZoomModalOpen(false)}
+        >
+          {/* Top Bar */}
+          <div
+            className="w-full max-w-5xl flex items-center justify-between gap-3 text-white pb-3 border-b border-[#D4AF37]/30"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="min-w-0">
+              <span className="text-[10px] text-[#D4AF37] uppercase font-bold tracking-widest block">
+                {currentSlide.badge} • High Resolution Viewer
+              </span>
+              <h3 className="text-sm sm:text-base font-display font-bold text-[#FAF7F0] truncate">
+                {currentSlide.title}
+              </h3>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setZoomLevel((z) => (z === 1 ? 1.6 : 1))}
+                className="px-2.5 py-1 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 rounded-xs text-xs font-semibold cursor-pointer inline-flex items-center gap-1"
+              >
+                {zoomLevel === 1 ? <ZoomIn className="w-3.5 h-3.5" /> : <ZoomOut className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">{zoomLevel === 1 ? 'Zoom 160%' : 'Reset 100%'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsZoomModalOpen(false)}
+                className="p-1.5 bg-[#1A253E] hover:bg-rose-900 text-white border border-neutral-600 hover:border-rose-400 rounded-xs cursor-pointer"
+                aria-label="Close high-res lightbox"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Centered Image with Adaptive Viewport Constraints */}
+          <div
+            className="flex-1 w-full max-w-5xl overflow-auto flex items-center justify-center p-2 sm:p-4 my-auto select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={currentSlide.image}
+              alt={currentSlide.alt || currentSlide.title}
+              style={{
+                transform: `scale(${zoomLevel})`,
+                transition: 'transform 0.25s ease-out'
+              }}
+              className="max-h-[72vh] sm:max-h-[78vh] max-w-[95vw] sm:max-w-[85vw] object-contain shadow-2xl rounded-xs cursor-zoom-in"
+              onClick={() => setZoomLevel((z) => (z === 1 ? 1.6 : 1))}
+            />
+          </div>
+
+          {/* Bottom Action Bar */}
+          <div
+            className="w-full max-w-5xl pt-3 border-t border-[#D4AF37]/30 flex flex-wrap items-center justify-between gap-3 text-xs text-[#EADBAC]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[#94A3B8]">Display Mode:</span>
+              <span className="font-semibold text-white">
+                {isMobileDisplay ? 'Mobile Optimized' : isTabletDisplay ? 'Tablet Scaled' : 'Desktop 4K Ready'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a
+                href={currentSlide.ctaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-1.5 bg-[#D4AF37] hover:bg-[#FAF7F0] text-[#0C1322] font-bold uppercase tracking-wider text-xs rounded-xs transition-colors inline-flex items-center gap-1.5"
+              >
+                <span>{currentSlide.ctaText}</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+              <button
+                type="button"
+                onClick={() => setIsZoomModalOpen(false)}
+                className="text-xs text-neutral-300 hover:text-white underline cursor-pointer"
+              >
+                Close (Esc)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* START & END TIMER / SCHEDULE & IMAGE OPTIONS MODAL */}
       <SliderTimerOptionsModal
         isOpen={isOptionsModalOpen}
-        onClose={() => setIsOptionsModalOpen(false)}
+        onClose={() => {
+          setIsOptionsModalOpen(false);
+          setModalInitialSlideId(undefined);
+        }}
         slides={slides}
         onSave={handleSaveOptions}
         onReset={handleResetOptions}
         isAutoPlayActive={isAutoPlayActive}
         onToggleAutoPlay={() => setIsAutoPlayActive((prev) => !prev)}
+        initialSlideId={modalInitialSlideId}
       />
 
     </div>
