@@ -1,0 +1,8 @@
+{
+  "name": "Remix Forever Star India Awards (FSIA)",
+  "description": "India\u0027s premier national awards and beauty pageants platform celebrating beauty, talent, achievement, and women empowerment.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
