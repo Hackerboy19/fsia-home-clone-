@@ -23,6 +23,7 @@ export const SocialMediaSection: React.FC = () => {
 
         {/* Official Social Channels — swipeable row on phones, grid from md up. */}
         <MobileCarousel
+          label="Official FSIA social channels"
           gridClassName="md:grid-cols-2 lg:grid-cols-3"
           gapClassName="gap-6"
         >

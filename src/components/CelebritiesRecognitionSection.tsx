@@ -24,6 +24,7 @@ export const CelebritiesRecognitionSection: React.FC = () => {
 
         {/* Celebrity Editorial — swipeable row on phones, grid from md up. */}
         <MobileCarousel
+          label="Celebrity jury and guests"
           gridClassName="md:grid-cols-3"
           gapClassName="gap-8"
           className="mb-16"

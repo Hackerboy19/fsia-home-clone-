@@ -25,6 +25,7 @@ export const OfficialPartnersSection: React.FC = () => {
         {/* Partners — swipeable row on phones, grid from md up. 17 logos, so the
             row is the point of the carousel rather than a nicety. */}
         <MobileCarousel
+          label="Official partners"
           gridClassName="md:grid-cols-4 lg:grid-cols-5"
           gapClassName="gap-5"
           cardWidth="46%"
