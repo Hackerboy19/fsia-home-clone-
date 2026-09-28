@@ -1,6 +1,7 @@
 import React from 'react';
 import { PARTNERS } from '../data/fsiaData';
 import { FSIAImage } from './FSIAImage';
+import { MobileCarousel } from './MobileCarousel';
 
 export const OfficialPartnersSection: React.FC = () => {
   return (
@@ -21,8 +22,13 @@ export const OfficialPartnersSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Partners Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+        {/* Partners — swipeable row on phones, grid from md up. 17 logos, so the
+            row is the point of the carousel rather than a nicety. */}
+        <MobileCarousel
+          gridClassName="md:grid-cols-4 lg:grid-cols-5"
+          gapClassName="gap-5"
+          cardWidth="46%"
+        >
           {PARTNERS.map((partner) => (
             <div
               key={partner.id}
@@ -51,7 +57,7 @@ export const OfficialPartnersSection: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </MobileCarousel>
 
         {/* Section Verification Notice & Direct Sponsor Directory Link */}
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-5 bg-white p-6 border border-[#EADBAC] max-w-4xl mx-auto">

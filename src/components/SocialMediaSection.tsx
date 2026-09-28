@@ -1,5 +1,6 @@
 import React from 'react';
 import { FSIA_SOCIAL_PLATFORMS } from '../data/fsiaData';
+import { MobileCarousel } from './MobileCarousel';
 
 export const SocialMediaSection: React.FC = () => {
   return (
@@ -20,8 +21,11 @@ export const SocialMediaSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Official Social Channels Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Official Social Channels — swipeable row on phones, grid from md up. */}
+        <MobileCarousel
+          gridClassName="md:grid-cols-2 lg:grid-cols-3"
+          gapClassName="gap-6"
+        >
           {FSIA_SOCIAL_PLATFORMS.map((platform) => (
             <div
               key={platform.id}
@@ -61,7 +65,7 @@ export const SocialMediaSection: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </MobileCarousel>
 
         {/* Live Broadcast Note */}
         <div className="mt-12 p-6 bg-[#FAF8F2] border border-[#D4AF37]/40 text-center max-w-3xl mx-auto">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CELEBRITIES } from '../data/fsiaData';
 import { FSIAImage } from './FSIAImage';
+import { MobileCarousel } from './MobileCarousel';
 
 export const CelebritiesRecognitionSection: React.FC = () => {
   return (
@@ -21,8 +22,12 @@ export const CelebritiesRecognitionSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Celebrity Editorial Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        {/* Celebrity Editorial — swipeable row on phones, grid from md up. */}
+        <MobileCarousel
+          gridClassName="md:grid-cols-3"
+          gapClassName="gap-8"
+          className="mb-16"
+        >
           {CELEBRITIES.map((celeb) => (
             <div
               key={celeb.id}
@@ -64,7 +69,7 @@ export const CelebritiesRecognitionSection: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+        </MobileCarousel>
 
         {/* Authentic Institutional Strip - No icon-bubble clichés */}
         <div className="p-6 sm:p-8 border border-[#D4AF37]/40 bg-[#FAF8F2] grid grid-cols-1 md:grid-cols-2 gap-8">
