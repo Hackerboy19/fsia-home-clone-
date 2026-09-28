@@ -2,11 +2,19 @@ import React from 'react';
 import { TEAM_MEMBERS } from '../data/fsiaData';
 import { FSIAImage } from './FSIAImage';
 
+// Only the CEO and the Director are shown on the homepage now, as two large
+// spotlight cards. TEAM_MEMBERS itself is left untouched because TeamModal and
+// TeamCelebritiesSection also read from it — filtering here keeps the full
+// roster available everywhere else.
+const SPOTLIGHT = ['Rajesh Agarwal', 'Jaya Chauhan'];
+
 export const TeamSection: React.FC = () => {
+  const members = TEAM_MEMBERS.filter((m) => SPOTLIGHT.includes(m.name));
+
   return (
     <section id="team" className="py-20 md:py-24 bg-white relative border-b border-[#EADBAC]/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FAF7F0] border border-[#D4AF37]/40 text-[#7E591B] text-[11px] font-semibold tracking-widest uppercase mb-4 shadow-2xs">
@@ -21,15 +29,15 @@ export const TeamSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {TEAM_MEMBERS.map((member) => (
+        {/* Team Grid — centered two-column spotlight */}
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+          {members.map((member) => (
             <div
               key={member.name}
-              className="bg-[#FAF9F5] border border-[#EADBAC] p-6 shadow-2xs hover:border-[#D4AF37] transition-colors flex flex-col items-center text-center justify-between"
+              className="bg-[#FAF9F5] border border-[#EADBAC] p-10 sm:p-12 shadow-2xs hover:border-[#D4AF37] transition-colors flex flex-col items-center text-center justify-between"
             >
               <div className="flex flex-col items-center">
-                <div className="w-28 h-28 overflow-hidden border-2 border-[#D4AF37] mb-4 bg-neutral-900 shadow-xs">
+                <div className="w-48 h-48 overflow-hidden border-2 border-[#D4AF37] mb-6 bg-neutral-900 shadow-xs">
                   <FSIAImage
                     src={member.image}
                     alt={member.name}
@@ -38,24 +46,24 @@ export const TeamSection: React.FC = () => {
                   />
                 </div>
 
-                <span className="text-[10px] font-sans font-bold uppercase tracking-wider text-[#B8860B] mb-1">
+                <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#B8860B] mb-2">
                   {member.role}
                 </span>
 
-                <h3 className="text-lg font-display font-bold text-[#0C1322]">
+                <h3 className="text-3xl font-display font-bold text-[#0C1322] leading-tight">
                   {member.name}
                 </h3>
 
-                <p className="text-xs text-[#7E591B] font-semibold font-sans mt-0.5">
+                <p className="text-sm text-[#7E591B] font-semibold font-sans mt-1.5">
                   {member.designation}
                 </p>
 
-                <p className="text-xs text-[#526077] font-sans mt-3 leading-relaxed line-clamp-3">
+                <p className="text-sm text-[#526077] font-sans mt-4 leading-relaxed">
                   {member.bio}
                 </p>
               </div>
 
-              <div className="w-full pt-4 mt-4 border-t border-[#EADBAC]">
+              <div className="w-full pt-5 mt-6 border-t border-[#EADBAC]">
                 <span className="text-[10px] uppercase font-bold text-[#0C1322] tracking-wider font-sans">
                   Official FSIA Board
                 </span>

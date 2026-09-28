@@ -2,21 +2,14 @@ import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { TrustStatsSection } from './components/TrustStatsSection';
-import { PageantsSection } from './components/PageantsSection';
-import { AwardsSection } from './components/AwardsSection';
 import { EventsCalendarSection } from './components/EventsCalendarSection';
-import { LatestNewsSection } from './components/LatestNewsSection';
-import { AboutFsiaSection } from './components/AboutFsiaSection';
-import { WinnersSection } from './components/WinnersSection';
-import { SuccessStoriesSection } from './components/SuccessStoriesSection';
-import { GallerySection } from './components/GallerySection';
-import { TestimonialsSection } from './components/TestimonialsSection';
+import { AdvertisementSection } from './components/AdvertisementSection';
 import { SocialMediaSection } from './components/SocialMediaSection';
 import { CelebritiesRecognitionSection } from './components/CelebritiesRecognitionSection';
-import { TeamSection } from './components/TeamSection';
 import { OfficialPartnersSection } from './components/OfficialPartnersSection';
-import { FaqSection } from './components/FaqSection';
+import { TeamSection } from './components/TeamSection';
 import { FinalCtaSection } from './components/FinalCtaSection';
+import { SuccessStoriesSection } from './components/SuccessStoriesSection';
 import { Footer } from './components/Footer';
 
 // Modals
@@ -27,7 +20,7 @@ import { WinnersModal } from './components/WinnersModal';
 import { TeamModal } from './components/TeamModal';
 
 // Types
-import { PageantItem, AwardItem, WinnerItem, ArticleItem } from './types';
+import { WinnerItem } from './types';
 
 export default function App() {
   // Modal states
@@ -53,11 +46,14 @@ export default function App() {
     title: ''
   });
 
-  // Navigation smoothly scrolls to designated section or opens modal
+  // Navigation smoothly scrolls to designated section or opens modal.
+  //
+  // The pageants, awards, news, about, winners, gallery, testimonials and faq
+  // sections have been removed from the page. Header and Footer still link to
+  // some of those anchors; getElementById returns null for them and the scroll
+  // is simply skipped, so nothing throws. Winners and Team fall back to their
+  // modals, which is now the only way to reach that content in-page.
   const handleNavigate = (sectionId: string) => {
-    if (sectionId === 'categories') {
-      sectionId = 'pageants';
-    }
     if (sectionId === 'calendar' || sectionId === 'dates' || sectionId === 'events') {
       sectionId = 'schedule';
     }
@@ -65,12 +61,7 @@ export default function App() {
       sectionId = 'success-stories';
     }
     if (sectionId === 'winners') {
-      const el = document.getElementById('winners');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        setIsWinnersOpen(true);
-      }
+      setIsWinnersOpen(true);
       return;
     }
     if (sectionId === 'team') {
@@ -88,23 +79,6 @@ export default function App() {
     }
   };
 
-  // Select item handlers
-  const handleSelectPageant = (pageant: PageantItem) => {
-    setDetailModalState({
-      isOpen: true,
-      type: 'pageant',
-      data: pageant
-    });
-  };
-
-  const handleSelectAward = (award: AwardItem) => {
-    setDetailModalState({
-      isOpen: true,
-      type: 'award',
-      data: award
-    });
-  };
-
   const handleSelectWinner = (winner: WinnerItem) => {
     setDetailModalState({
       isOpen: true,
@@ -113,15 +87,8 @@ export default function App() {
     });
   };
 
-  const handleReadArticle = (article: ArticleItem) => {
-    setDetailModalState({
-      isOpen: true,
-      type: 'article',
-      data: article
-    });
-  };
-
-  // Search item handler
+  // Search still indexes pageants, awards, articles and winners, so the detail
+  // modal keeps handling all four types even though those sections are gone.
   const handleSearchResult = (type: 'pageant' | 'award' | 'article' | 'winner', item: any) => {
     setDetailModalState({
       isOpen: true,
@@ -132,7 +99,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F5] text-[#0C1322] font-sans antialiased selection:bg-[#D4AF37]/20 selection:text-[#0C1322]">
-      {/* 1 & 2. CANONICAL FSIA HEADER (Locked from header1806.php, namespace: .fsia-mh) */}
+      {/* CANONICAL FSIA HEADER (Locked from header1806.php, namespace: .fsia-mh) */}
       <Header
         onOpenSearch={() => setIsSearchOpen(true)}
         onNavigate={handleNavigate}
@@ -140,67 +107,43 @@ export default function App() {
 
       {/* Main Content Area - Scoped under .fsia-home for CSS isolation */}
       <main id="main-content" className="fsia-home flex-1">
-        {/* 1. HERO */}
+        {/* 1. HERO & STATISTICS */}
         <HeroSection
-          onExploreEvents={() => handleNavigate('pageants')}
+          onExploreEvents={() => handleNavigate('schedule')}
         />
-
-        {/* 2. STATISTICS */}
         <TrustStatsSection />
 
-        {/* 3. OUR PAGEANTS */}
-        <PageantsSection
-          onSelectPageant={handleSelectPageant}
-        />
+        {/* 2. PAGEANT & NATIONAL AWARD CALENDAR */}
+        <EventsCalendarSection />
 
-        {/* 5. OUR AWARDS */}
-        <AwardsSection
-          onSelectAward={handleSelectAward}
-        />
+        {/* 3. ADVERTISEMENT */}
+        <AdvertisementSection />
 
-        {/* 5.5. UPCOMING PAGEANT & AWARD DATES CALENDAR */}
-        <EventsCalendarSection
-          onExplorePageants={() => handleNavigate('pageants')}
-          onExploreAwards={() => handleNavigate('awards')}
-        />
-
-        {/* 6. LATEST FROM FSIA */}
-        <LatestNewsSection onReadArticle={handleReadArticle} />
-
-        {/* 7. ABOUT FSIA */}
-        <AboutFsiaSection />
-
-        {/* 8. WINNERS */}
-        <WinnersSection onSelectWinner={handleSelectWinner} />
-
-        {/* 8.5. WINNER SUCCESS STORIES & VIDEO REELS */}
-        <SuccessStoriesSection />
-
-        {/* 9. MOMENTS THAT INSPIRE */}
-        <GallerySection />
-
-        {/* 10. TESTIMONIALS */}
-        <TestimonialsSection />
-
-        {/* 11. FSIA ON SOCIAL MEDIA */}
+        {/* 4. CONNECT WITH FSIA */}
         <SocialMediaSection />
 
-        {/* 12. CELEBRITIES / EVENTS */}
+        {/* 5. CELEBRITY JURY & GUESTS */}
         <CelebritiesRecognitionSection />
 
-        {/* 13. OUR TEAM */}
-        <TeamSection />
-
-        {/* 14. OFFICIAL PARTNERS */}
+        {/* 6. OFFICIAL PARTNERS */}
         <OfficialPartnersSection />
 
-        {/* 15. FREQUENTLY ASKED QUESTIONS */}
-        <FaqSection />
+        {/* 7. OUR TEAM & MENTORS */}
+        <TeamSection />
 
-        {/* 16. FINAL CTA */}
+        {/* 8. FINAL CTA */}
         <FinalCtaSection
-          onExploreEvents={() => handleNavigate('pageants')}
+          onExploreEvents={() => handleNavigate('schedule')}
         />
+
+        {/*
+          WINNER SUCCESS STORIES — kept mounted but hidden from public view.
+          Placed last so the visible running order above is unaffected.
+          Remove the wrapper's `hidden` class to bring it back.
+        */}
+        <div hidden className="hidden" aria-hidden="true">
+          <SuccessStoriesSection />
+        </div>
       </main>
 
       {/* CANONICAL FSIA FOOTER (Locked from footer1806.php, namespace: .fsia-ft) */}
