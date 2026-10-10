@@ -1,5 +1,10 @@
 import React from 'react';
-import { FSIA_SOCIAL_PLATFORMS } from '../data/fsiaData';
+import { FSIA_SOCIAL_PLATFORMS as DEFAULT_PLATFORMS } from '../data/fsiaData';
+import { cmsList } from '../lib/cms';
+import { SocialPlatformItem } from '../types';
+
+// Managed in the CMS admin (Homepage -> Social Media Profiles).
+const FSIA_SOCIAL_PLATFORMS = cmsList<SocialPlatformItem>('social_profiles', DEFAULT_PLATFORMS);
 
 export const SocialMediaSection: React.FC = () => {
   return (
@@ -28,6 +33,23 @@ export const SocialMediaSection: React.FC = () => {
               className="bg-[#FAF9F5] border border-[#EADBAC] p-6 flex flex-col justify-between hover:border-[#D4AF37] transition-colors shadow-2xs"
             >
               <div>
+                {platform.thumbnail && (
+                  <a
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block -mx-6 -mt-6 mb-5 aspect-[16/10] overflow-hidden bg-[#EDE8DC] border-b border-[#EADBAC]"
+                    aria-label={`${platform.name}: ${platform.profileName}`}
+                  >
+                    <img
+                      src={platform.thumbnail}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover object-top"
+                    />
+                  </a>
+                )}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-bold font-sans uppercase tracking-widest text-[#B8860B]">
                     {platform.name}

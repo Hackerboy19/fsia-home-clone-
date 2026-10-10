@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { FSIAImage } from './FSIAImage';
 import { SliderTimerOptionsModal, SlideTimerConfig } from './SliderTimerOptionsModal';
+import { cmsList } from '../lib/cms';
 
 export const DEFAULT_HERO_SLIDES: SlideTimerConfig[] = [
   {
@@ -113,18 +114,20 @@ export const DEFAULT_HERO_SLIDES: SlideTimerConfig[] = [
 const STORAGE_KEY = 'fsia_hero_slider_settings_v4';
 
 export const HeroSlider: React.FC = () => {
-  // Load initial slides from localStorage or fallback to defaults
+  // Slides come from the CMS admin (Homepage -> Hero Slider), else the defaults.
+  // localStorage is no longer read: it only ever held one browser's local
+  // edits, which visitors never saw and which would hide CMS updates.
+  // Slides outside their start/end window are skipped (if that would leave
+  // none, all are shown rather than an empty hero).
   const [slides, setSlides] = useState<SlideTimerConfig[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {
-      // Fallback
-    }
-    return DEFAULT_HERO_SLIDES;
+    const all = cmsList<SlideTimerConfig>('hero_slides', DEFAULT_HERO_SLIDES).filter((s) => s && s.image);
+    const now = Date.now();
+    const live = all.filter((s) => {
+      const start = s.startDate ? new Date(s.startDate).getTime() : NaN;
+      const end = s.endDate ? new Date(s.endDate).getTime() : NaN;
+      return !(start > now) && !(end < now);
+    });
+    return live.length > 0 ? live : all;
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);

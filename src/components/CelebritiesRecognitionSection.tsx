@@ -1,5 +1,10 @@
 import React from 'react';
-import { CELEBRITIES } from '../data/fsiaData';
+import { CELEBRITIES as DEFAULT_CELEBRITIES } from '../data/fsiaData';
+import { cmsList } from '../lib/cms';
+import { CelebrityItem } from '../types';
+
+// Managed in the CMS admin (Homepage -> Celebrity Jury & Guests).
+const CELEBRITIES = cmsList<CelebrityItem>('celebrities', DEFAULT_CELEBRITIES);
 import { FSIAImage } from './FSIAImage';
 
 export const CelebritiesRecognitionSection: React.FC = () => {

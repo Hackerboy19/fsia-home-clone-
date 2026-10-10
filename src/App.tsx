@@ -2,20 +2,12 @@ import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { TrustStatsSection } from './components/TrustStatsSection';
-import { PageantsSection } from './components/PageantsSection';
-import { AwardsSection } from './components/AwardsSection';
 import { EventsCalendarSection } from './components/EventsCalendarSection';
-import { LatestNewsSection } from './components/LatestNewsSection';
-import { AboutFsiaSection } from './components/AboutFsiaSection';
-import { WinnersSection } from './components/WinnersSection';
-import { SuccessStoriesSection } from './components/SuccessStoriesSection';
-import { GallerySection } from './components/GallerySection';
-import { TestimonialsSection } from './components/TestimonialsSection';
+import { AdvertisementSection } from './components/AdvertisementSection';
 import { SocialMediaSection } from './components/SocialMediaSection';
 import { CelebritiesRecognitionSection } from './components/CelebritiesRecognitionSection';
 import { TeamSection } from './components/TeamSection';
 import { OfficialPartnersSection } from './components/OfficialPartnersSection';
-import { FaqSection } from './components/FaqSection';
 import { FinalCtaSection } from './components/FinalCtaSection';
 import { Footer } from './components/Footer';
 
@@ -142,64 +134,36 @@ export default function App() {
       <main id="main-content" className="fsia-home flex-1">
         {/* 1. HERO */}
         <HeroSection
-          onExploreEvents={() => handleNavigate('pageants')}
+          onExploreEvents={() => handleNavigate('schedule')}
         />
 
         {/* 2. STATISTICS */}
         <TrustStatsSection />
 
-        {/* 3. OUR PAGEANTS */}
-        <PageantsSection
-          onSelectPageant={handleSelectPageant}
-        />
-
-        {/* 5. OUR AWARDS */}
-        <AwardsSection
-          onSelectAward={handleSelectAward}
-        />
-
-        {/* 5.5. UPCOMING PAGEANT & AWARD DATES CALENDAR */}
+        {/* 3. UPCOMING PAGEANT & AWARD DATES CALENDAR */}
         <EventsCalendarSection
-          onExplorePageants={() => handleNavigate('pageants')}
-          onExploreAwards={() => handleNavigate('awards')}
+          onExplorePageants={() => handleNavigate('schedule')}
+          onExploreAwards={() => handleNavigate('schedule')}
         />
 
-        {/* 6. LATEST FROM FSIA */}
-        <LatestNewsSection onReadArticle={handleReadArticle} />
+        {/* 4. ADVERTISEMENT (CMS: advertisement) */}
+        <AdvertisementSection />
 
-        {/* 7. ABOUT FSIA */}
-        <AboutFsiaSection />
-
-        {/* 8. WINNERS */}
-        <WinnersSection onSelectWinner={handleSelectWinner} />
-
-        {/* 8.5. WINNER SUCCESS STORIES & VIDEO REELS */}
-        <SuccessStoriesSection />
-
-        {/* 9. MOMENTS THAT INSPIRE */}
-        <GallerySection />
-
-        {/* 10. TESTIMONIALS */}
-        <TestimonialsSection />
-
-        {/* 11. FSIA ON SOCIAL MEDIA */}
+        {/* 5. FSIA ON SOCIAL MEDIA */}
         <SocialMediaSection />
 
-        {/* 12. CELEBRITIES / EVENTS */}
+        {/* 6. CELEBRITY JURY & GUESTS */}
         <CelebritiesRecognitionSection />
 
-        {/* 13. OUR TEAM */}
-        <TeamSection />
-
-        {/* 14. OFFICIAL PARTNERS */}
+        {/* 7. OFFICIAL PARTNERS */}
         <OfficialPartnersSection />
 
-        {/* 15. FREQUENTLY ASKED QUESTIONS */}
-        <FaqSection />
+        {/* 8. OUR TEAM */}
+        <TeamSection />
 
         {/* 16. FINAL CTA */}
         <FinalCtaSection
-          onExploreEvents={() => handleNavigate('pageants')}
+          onExploreEvents={() => handleNavigate('schedule')}
         />
       </main>
 

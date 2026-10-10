@@ -18,7 +18,19 @@ import {
   X,
   Share2
 } from 'lucide-react';
-import { UPCOMING_EVENTS } from '../data/fsiaData';
+import { UPCOMING_EVENTS as DEFAULT_EVENTS } from '../data/fsiaData';
+import { cmsList } from '../lib/cms';
+
+// Events come from the CMS admin (Homepage -> Event Calendar), sorted by date.
+const UPCOMING_EVENTS: EventCalendarItem[] = [...cmsList<EventCalendarItem>('calendar_events', DEFAULT_EVENTS)]
+  .filter((e) => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date || ''))
+  .map((e) => ({ ...e, highlights: Array.isArray(e.highlights) ? e.highlights : [] }))
+  .sort((a, b) => a.date.localeCompare(b.date));
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const TODAY = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
+// Open on the next upcoming event (or today when nothing is scheduled ahead).
+const START_DATE = (UPCOMING_EVENTS.find((e) => e.date >= TODAY) || { date: TODAY }).date;
 import { EventCalendarItem } from '../types';
 import { FSIAImage } from './FSIAImage';
 
@@ -37,9 +49,9 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
   onExploreAwards
 }) => {
   // Current reference date: September 2026
-  const [currentYear, setCurrentYear] = useState<number>(2026);
-  const [currentMonth, setCurrentMonth] = useState<number>(9); // 0-indexed: 9 = October 2026 (or 8 for Sept)
-  const [selectedDate, setSelectedDate] = useState<string>('2026-10-05');
+  const [currentYear, setCurrentYear] = useState<number>(Number(START_DATE.slice(0, 4)));
+  const [currentMonth, setCurrentMonth] = useState<number>(Number(START_DATE.slice(5, 7)) - 1); // 0-indexed
+  const [selectedDate, setSelectedDate] = useState<string>(START_DATE);
   const [activeFilter, setActiveFilter] = useState<EventFilterType>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -68,11 +80,16 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
             event.category.toLowerCase().includes(q) ||
             event.city.toLowerCase().includes(q) ||
             event.venue.toLowerCase().includes(q) ||
-            event.description.toLowerCase().includes(q);
+            event.description.toLowerCase().includes(q) ||
+            (event.keywords || []).some((k) => k.toLowerCase().includes(q));
 
       return matchesFilter && matchesSearch;
     });
   }, [activeFilter, searchQuery]);
+
+  // Days that match the active category filter or search keyword
+  const isFiltering = activeFilter !== 'all' || searchQuery.trim() !== '';
+  const matchingDates = useMemo(() => new Set(filteredEvents.map((e) => e.date)), [filteredEvents]);
 
   // Map of events by date string "YYYY-MM-DD"
   const eventsByDate = useMemo(() => {
@@ -116,9 +133,11 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
   // Jump to today / reference date (September/October 2026)
   const handleJumpToCurrent = () => {
-    setCurrentYear(2026);
-    setCurrentMonth(9); // October 2026
-    setSelectedDate('2026-10-05');
+    // "Season Peak" = first upcoming event marked Featured in the CMS, else the next event.
+    const peak = (UPCOMING_EVENTS.find((e) => e.highlight && e.date >= TODAY) || UPCOMING_EVENTS.find((e) => e.date >= TODAY))?.date || START_DATE;
+    setCurrentYear(Number(peak.slice(0, 4)));
+    setCurrentMonth(Number(peak.slice(5, 7)) - 1);
+    setSelectedDate(peak);
   };
 
   // Calculate calendar grid days
@@ -262,7 +281,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
   // Quick jump to next event
   const handleJumpToNextUpcoming = () => {
-    const todayStr = '2026-09-24';
+    const todayStr = TODAY;
     const next = UPCOMING_EVENTS.find((e) => e.date >= todayStr);
     if (next) {
       const [y, m] = next.date.split('-').map(Number);
@@ -467,8 +486,11 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
               <div className="grid grid-cols-7 gap-1 sm:gap-2" role="grid">
                 {calendarGrid.map((cell, idx) => {
                   const hasEvents = cell.events.length > 0;
+                  const isMatch = isFiltering && matchingDates.has(cell.dateString);
+                  const isDimmed = isFiltering && hasEvents && !isMatch;
+                  const isFeatured = cell.events.some((e) => e.highlight);
                   const isSelected = cell.dateString === selectedDate;
-                  const isCurrentDay = cell.dateString === '2026-09-24';
+                  const isCurrentDay = cell.dateString === TODAY;
 
                   // Determine event type color indicator
                   const firstEventType = cell.events[0]?.type;
@@ -492,8 +514,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           : cell.isCurrentMonth
                           ? 'bg-white hover:bg-stone-50 border-stone-100 text-stone-800'
                           : 'bg-stone-50/60 border-transparent text-stone-300'
-                      }`}
-                      aria-label={`${cell.dateString} ${hasEvents ? `- ${cell.events.length} event(s)` : ''}`}
+                      } ${isMatch && !isSelected ? 'ring-2 ring-[#D4AF37] border-[#B8860B]' : ''} ${isDimmed ? 'opacity-40' : ''}`}
+                      aria-label={`${cell.dateString} ${hasEvents ? `- ${cell.events.length} event(s)` : ''}${isFeatured ? ' (featured)' : ''}`}
                     >
                       {/* Day Number and Today Indicator */}
                       <div className="w-full flex items-center justify-between">
@@ -509,6 +531,9 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           {cell.dayNumber}
                         </span>
 
+                        {isFeatured && !isCurrentDay && (
+                          <span className="text-[10px] leading-none text-[#B8860B]" title="Featured event" aria-hidden="true">★</span>
+                        )}
                         {isCurrentDay && (
                           <span
                             className="text-[9px] uppercase font-bold px-1 py-0.2 bg-[#A6093D] text-white rounded"

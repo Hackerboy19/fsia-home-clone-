@@ -6,6 +6,21 @@ import {defineConfig} from 'vite';
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
+    // Production output matches what www.fsia.in/index.php loads:
+    // /fsia-home-assets/fsia-home.js and /fsia-home-assets/fsia-home.css
+    build: {
+      outDir: 'fsia-home-assets',
+      emptyOutDir: true,
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          entryFileNames: 'fsia-home.js',
+          chunkFileNames: 'fsia-home-[name].js',
+          assetFileNames: (info) => (info.names?.[0] || info.name || '').endsWith('.css') ? 'fsia-home.css' : 'assets/[name]-[hash][extname]',
+          inlineDynamicImports: true,
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
