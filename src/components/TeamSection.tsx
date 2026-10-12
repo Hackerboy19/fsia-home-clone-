@@ -1,8 +1,11 @@
 import React from 'react';
-import { TEAM_MEMBERS } from '../data/fsiaData';
+import { cmsObject } from '../lib/cms';
+import { linkProps } from '../lib/richText';
+import { DEFAULT_TEAM } from '../data/homeContent';
 
-// The homepage features only the Founder & CEO; the full team is on our-teams.php.
-const FEATURED = TEAM_MEMBERS.filter((m) => /\bCEO\b/.test(m.role)).slice(0, 1);
+// Edited under Homepage -> CEO / Team in the CMS admin (defaults: Founder & CEO only).
+const TEAM = cmsObject('home_team', DEFAULT_TEAM);
+const FEATURED = Array.isArray(TEAM.items) ? TEAM.items.filter((m) => m && m.name) : [];
 import { FSIAImage } from './FSIAImage';
 
 export const TeamSection: React.FC = () => {
@@ -14,21 +17,21 @@ export const TeamSection: React.FC = () => {
         <div className="max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FAF7F0] border border-[#D4AF37]/40 text-[#7E591B] text-[11px] font-semibold tracking-widest uppercase mb-4 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B]" />
-            <span>LEADERSHIP &amp; EXPERT JURY PANEL</span>
+            <span>{TEAM.badge}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-[#0C1322] tracking-tight">
-            OUR TEAM &amp; MENTORS
+            {TEAM.title}
           </h2>
           <p className="text-base text-[#475569] mt-3 font-sans leading-relaxed">
-            Guiding Forever Star India with dedication, national industry pedigree, and a commitment to unlocking human potential.
+            {TEAM.subtitle}
           </p>
         </div>
 
         {/* Featured leader */}
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-          {FEATURED.map((member) => (
+          {FEATURED.map((member, i) => (
             <div
-              key={member.name}
+              key={`${member.name}-${i}`}
               className="bg-[#FAF9F5] border border-[#EADBAC] p-10 sm:p-12 shadow-2xs hover:border-[#D4AF37] transition-colors flex flex-col items-center text-center justify-between"
             >
               <div className="flex flex-col items-center">
@@ -60,7 +63,7 @@ export const TeamSection: React.FC = () => {
 
               <div className="w-full pt-4 mt-4 border-t border-[#EADBAC]">
                 <span className="text-[10px] uppercase font-bold text-[#0C1322] tracking-wider font-sans">
-                  Official FSIA Board
+                  {TEAM.cardFooter}
                 </span>
               </div>
             </div>
@@ -69,14 +72,12 @@ export const TeamSection: React.FC = () => {
 
         {/* View Full Team CTA */}
         <div className="mt-12 text-center">
-          <a
-            href="https://www.fsia.in/our-teams.php"
-            target="_blank"
-            rel="noopener noreferrer"
+          {TEAM.buttonText && <a
+            {...linkProps(TEAM.buttonUrl)}
             className="inline-flex items-center px-7 py-3.5 bg-[#0C1322] hover:bg-[#1A253E] text-[#EADBAC] hover:text-white text-xs font-bold tracking-widest uppercase border border-[#D4AF37]/50 transition-colors"
           >
-            VIEW COMPLETE LEADERSHIP DIRECTORY &rarr;
-          </a>
+            {TEAM.buttonText}
+          </a>}
         </div>
 
       </div>
