@@ -625,7 +625,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                       className="border border-stone-200/90 rounded-xl p-4 bg-stone-50/40 hover:bg-white hover:border-[#B8860B]/60 transition-all duration-200 group"
                     >
                       {/* Event Banner / Thumbnail */}
-                      <div className="relative h-32 w-full rounded-lg overflow-hidden mb-4 bg-stone-900">
+                      <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden mb-4 bg-stone-900">
                         <FSIAImage
                           src={event.image}
                           alt={event.title}
@@ -967,7 +967,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
             </button>
 
             {/* Modal Hero Banner */}
-            <div className="relative h-48 sm:h-56 w-full bg-stone-900">
+            <div className="relative aspect-[16/9] max-h-[45vh] w-full bg-stone-900">
               <FSIAImage
                 src={detailModalEvent.image}
                 alt={detailModalEvent.title}

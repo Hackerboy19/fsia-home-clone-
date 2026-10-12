@@ -69,7 +69,7 @@ export const FSIAImage: React.FC<FSIAImageProps> = ({
         <div className="w-10 h-10 rounded-sm border border-[#D4AF37]/40 flex items-center justify-center mb-2.5 bg-[#0C1322] text-[#D4AF37]">
           <Award className="w-5 h-5" />
         </div>
-        <p className="font-display text-[#FAF7F0] text-xs sm:text-sm tracking-wider font-semibold uppercase line-clamp-2">{alt}</p>
+        <p className="w-full max-w-full px-10 sm:px-14 break-words font-display text-[#FAF7F0] text-xs sm:text-sm tracking-wider font-semibold uppercase line-clamp-3">{alt}</p>
         <span className="text-[#D4AF37] text-[11px] mt-1 font-sans">
           Forever Star India
         </span>

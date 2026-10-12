@@ -174,23 +174,12 @@ export const HeroSlider: React.FC = () => {
   const currentSlide = slides[currentIndex] || slides[0] || DEFAULT_HERO_SLIDES[0];
 
   // Helper to determine display-effective fit mode for each slide
+  // Slides are never cropped: the stage is 4:5 on every screen, so a 4:5
+  // (1080 × 1350) image fills it exactly and any other shape is shown whole,
+  // with the blurred copy behind it filling the rest. (fitMode is ignored.)
   const getEffectiveFitMode = useCallback(
-    (slide: SlideTimerConfig): 'contain' | 'cover' => {
-      if (slide.fitMode === 'contain') return 'contain';
-      if (slide.fitMode === 'cover') return 'cover';
-      
-      // If 'auto' (Display Adaptive):
-      // Posters with text need 'contain' so crucial dates, cities, and URLs aren't cut off
-      const isFlyer = /pageant|award|audition|poster|flyer|trophy|season\s*\d+/i.test(
-        `${slide.title} ${slide.badge} ${slide.image}`
-      );
-      if (isFlyer) return 'contain';
-
-      // Stage / catwalk landscape photos:
-      // On mobile screens, 'contain' ensures stage edges aren't sliced, while on desktop 'cover' fills arena
-      return isMobileDisplay ? 'contain' : 'cover';
-    },
-    [isMobileDisplay]
+    (_slide: SlideTimerConfig): 'contain' | 'cover' => 'contain',
+    []
   );
 
   const handleNext = useCallback(() => {
@@ -555,9 +544,9 @@ export const HeroSlider: React.FC = () => {
         </div>
       </div>
 
-      {/* VISUAL SLIDER STAGE (Dynamically Sized per Display: Mobile, Tablet, Desktop) */}
+      {/* VISUAL SLIDER STAGE: one 4:5 portrait shape on every screen (recommended image: 1080 × 1350 px) */}
       <div
-        className="relative overflow-hidden bg-[#0B1220] w-full flex items-center justify-center border border-[#D4AF37]/20 transition-[height] duration-300 h-[290px] xs:h-[340px] sm:h-[400px] md:h-[460px] lg:h-[490px] xl:h-[520px]"
+        className="relative overflow-hidden bg-[#0B1220] w-full aspect-[4/5] flex items-center justify-center border border-[#D4AF37]/20"
       >
         {/* Render stacked slides with smooth opacity crossfade */}
         {slides.map((slide, index) => {

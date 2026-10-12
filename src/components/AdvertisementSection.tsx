@@ -52,7 +52,7 @@ function sizeStyle(w?: number, h?: number): React.CSSProperties {
     width: w ? `${w}px` : undefined,
     height: h ? `${h}px` : undefined,
     maxWidth: '100%',
-    objectFit: w && h ? 'cover' : undefined,
+    objectFit: 'contain', // never crop the ad; it is shown whole inside the box
   };
 }
 
