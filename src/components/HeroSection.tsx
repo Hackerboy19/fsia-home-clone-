@@ -66,14 +66,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Institutional Credentials Strip */}
             <div className="pt-5 border-t border-[#EADBAC] flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-[#526077] font-sans">
+              {/* No "•" separators: with long facts the row wraps and a separator is left dangling. */}
               {credentials.map((c, i) => (
-                <React.Fragment key={i}>
-                  {i > 0 && <span className="text-[#D4AF37] hidden sm:inline">•</span>}
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-[#0C1322]">{c.label}</span>
-                    <span>{c.value}</span>
-                  </div>
-                </React.Fragment>
+                <div key={i} className="flex items-baseline gap-2">
+                  <span className="font-semibold text-[#0C1322] shrink-0">{c.label}</span>
+                  <span>{c.value}</span>
+                </div>
               ))}
             </div>
           </div>
