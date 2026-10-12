@@ -1,5 +1,8 @@
 import React from 'react';
 import { TEAM_MEMBERS } from '../data/fsiaData';
+
+// The homepage features only the Founder & CEO; the full team is on our-teams.php.
+const FEATURED = TEAM_MEMBERS.filter((m) => /\bCEO\b/.test(m.role)).slice(0, 1);
 import { FSIAImage } from './FSIAImage';
 
 export const TeamSection: React.FC = () => {
@@ -21,15 +24,15 @@ export const TeamSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {TEAM_MEMBERS.map((member) => (
+        {/* Featured leader */}
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+          {FEATURED.map((member) => (
             <div
               key={member.name}
-              className="bg-[#FAF9F5] border border-[#EADBAC] p-6 shadow-2xs hover:border-[#D4AF37] transition-colors flex flex-col items-center text-center justify-between"
+              className="bg-[#FAF9F5] border border-[#EADBAC] p-10 sm:p-12 shadow-2xs hover:border-[#D4AF37] transition-colors flex flex-col items-center text-center justify-between"
             >
               <div className="flex flex-col items-center">
-                <div className="w-28 h-28 overflow-hidden border-2 border-[#D4AF37] mb-4 bg-neutral-900 shadow-xs">
+                <div className="w-48 h-48 overflow-hidden border-2 border-[#D4AF37] mb-4 bg-neutral-900 shadow-xs">
                   <FSIAImage
                     src={member.image}
                     alt={member.name}
@@ -42,7 +45,7 @@ export const TeamSection: React.FC = () => {
                   {member.role}
                 </span>
 
-                <h3 className="text-lg font-display font-bold text-[#0C1322]">
+                <h3 className="text-3xl font-display font-bold text-[#0C1322]">
                   {member.name}
                 </h3>
 

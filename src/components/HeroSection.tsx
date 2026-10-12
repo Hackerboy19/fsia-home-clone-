@@ -23,11 +23,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
 
             {/* Majestic Display Headline */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-[#0C1322] leading-[1.08] tracking-tight mb-5">
+            <p className="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-[#0C1322] leading-[1.08] tracking-tight mb-5">
               REAL PEOPLE. <br />
-              <span className="text-[#B8860B]">REAL STORIES.</span> <br />
-              A BRIGHTER INDIA.
-            </h1>
+              <span className="text-[#B8860B]">REAL STORIES.</span><br />
+              A Forever INDIA.
+            </p>
 
             {/* Authoritative Editorial Copy */}
             <p className="text-base sm:text-lg text-[#334155] leading-relaxed max-w-2xl font-sans font-normal mb-8">
