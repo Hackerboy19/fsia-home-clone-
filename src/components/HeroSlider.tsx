@@ -8,16 +8,13 @@ import {
   Calendar,
   ExternalLink,
   Settings,
-  Maximize2,
-  Minimize2,
   Image as ImageIcon,
   Plus,
   Smartphone,
   Monitor,
   ZoomIn,
   ZoomOut,
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
 import { FSIAImage } from './FSIAImage';
 import { SliderTimerOptionsModal, SlideTimerConfig } from './SliderTimerOptionsModal';
@@ -195,23 +192,6 @@ export const HeroSlider: React.FC = () => {
   const goToSlide = (index: number) => {
     setProgressPercent(0);
     setCurrentIndex(index);
-  };
-
-  // Cycle image fit mode on the active slide: auto -> contain -> cover -> auto
-  const cycleActiveFitMode = () => {
-    const updated = slides.map((s, idx) => {
-      if (idx !== currentIndex) return s;
-      const currentFit = s.fitMode;
-      const nextFit: 'contain' | 'cover' | 'auto' =
-        currentFit === 'auto' ? 'contain' : currentFit === 'contain' ? 'cover' : 'auto';
-      return { ...s, fitMode: nextFit };
-    });
-    setSlides(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // Ignore
-    }
   };
 
   const handleOpenChangeImage = () => {
@@ -439,38 +419,7 @@ export const HeroSlider: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Display Mode & Fit Mode Toggle */}
-          <button
-            type="button"
-            onClick={cycleActiveFitMode}
-            title={`Current: ${
-              currentSlide.fitMode === 'auto'
-                ? 'Auto-Adaptive (Screen Aware)'
-                : currentSlide.fitMode === 'contain'
-                ? 'Uncropped Poster (Contain)'
-                : 'Fill Stage (Cover)'
-            }. Click to cycle mode.`}
-            className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 text-[10px] font-sans font-semibold rounded-xs transition-colors cursor-pointer"
-          >
-            {currentSlide.fitMode === 'auto' ? (
-              <>
-                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
-                <span>Auto-Fit</span>
-              </>
-            ) : currentSlide.fitMode === 'contain' ? (
-              <>
-                <Minimize2 className="w-3 h-3 text-[#D4AF37]" />
-                <span className="hidden sm:inline">Uncropped</span>
-                <span className="sm:hidden">Full</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3 h-3 text-[#D4AF37]" />
-                <span>Fill</span>
-              </>
-            )}
-          </button>
-
+          {/* (No fit-mode toggle: slides are always shown whole in a fixed 4:5 frame.) */}
           {/* Fullscreen / Zoom Lightbox Button */}
           <button
             type="button"
