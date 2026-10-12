@@ -19,7 +19,12 @@ import {
   Share2
 } from 'lucide-react';
 import { UPCOMING_EVENTS as DEFAULT_EVENTS } from '../data/fsiaData';
-import { cmsList } from '../lib/cms';
+import { cmsHeader, cmsList } from '../lib/cms';
+import { linkProps, richText } from '../lib/richText';
+import { DEFAULT_CALENDAR_TEXT } from '../data/homeContent';
+
+// Headings and fixed text, edited under Homepage -> Event Calendar.
+const HEAD = cmsHeader('calendar_events', DEFAULT_CALENDAR_TEXT);
 
 // Events come from the CMS admin (Homepage -> Event Calendar), sorted by date.
 const UPCOMING_EVENTS: EventCalendarItem[] = [...cmsList<EventCalendarItem>('calendar_events', DEFAULT_EVENTS)]
@@ -302,39 +307,28 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
         {/* Editorial Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 pb-6 border-b border-[#EADBAC]/80">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#B8860B] font-semibold mb-3">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs uppercase tracking-widest text-[#B8860B] font-semibold mb-3">
               <CalendarIcon className="w-4 h-4 text-[#B8860B]" />
-              <span>Official Season 2026 &amp; 2027 Schedule</span>
-              <span aria-hidden="true">·</span>
-              <span className="text-[#A6093D] font-bold">Zee Studio Production Hub</span>
+              <span>{HEAD.badge}</span>
+              {HEAD.badge2 && <span className="text-[#A6093D] font-bold">{HEAD.badge2}</span>}
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#0C1322] tracking-tight leading-tight">
-              Pageant &amp; National Award Calendar
+              {HEAD.title}
             </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base leading-relaxed">
-              Explore official dates for nationwide auditions, teen masterclasses, state semi-finals, jury evaluations, and the grand coronation ceremony at Zee Studio Jaipur. Select any date to inspect the verified itinerary.
+            <p className="mt-3 text-stone-600 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+              {richText(HEAD.subtitle)}
             </p>
           </div>
 
-          {/* Quick Metrics / Action Strip */}
-          <div className="flex flex-wrap items-center gap-4 text-xs text-stone-600">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#A6093D]" />
-              <span className="font-semibold text-stone-900">4,000+</span>
-              <span>City Auditions</span>
-            </div>
-            <span aria-hidden="true" className="text-stone-300">|</span>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
-              <span className="font-semibold text-stone-900">Dec 18</span>
-              <span>Grand Coronation</span>
-            </div>
-            <span aria-hidden="true" className="text-stone-300">|</span>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#78350F]" />
-              <span className="font-semibold text-stone-900">Dec 20</span>
-              <span>Gala Felicitation</span>
-            </div>
+          {/* Quick Metrics (no "|" separators: they dangle when the row wraps) */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600">
+            {(Array.isArray(HEAD.highlights) ? HEAD.highlights : []).map((h, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: h.color || '#D4AF37' }} />
+                <span className="font-semibold text-stone-900">{h.value}</span>
+                <span>{h.label}</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -828,14 +822,13 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
                         {/* Title and Metadata */}
                         <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-1.5 text-xs text-stone-500">
+                          {/* Inline text, "·" glued to the previous part: it never starts or ends a wrapped line alone. */}
+                          <div className="mb-1.5 text-xs text-stone-500">
                             <span className="font-semibold text-[#A6093D] uppercase tracking-wide">
                               {getEventBadgeLabel(event.type)}
                             </span>
-                            <span aria-hidden="true">·</span>
-                            <span className="text-stone-700">{event.category}</span>
-                            <span aria-hidden="true">·</span>
-                            <span className="font-mono text-stone-600">{event.time}</span>
+                            {event.category && <>{'\u00A0· '}<span className="text-stone-700">{event.category}</span></>}
+                            {event.time && <>{'\u00A0· '}<span className="font-mono text-stone-600">{event.time}</span></>}
                           </div>
 
                           <h4 className="text-lg sm:text-xl font-serif font-bold text-[#0C1322] group-hover:text-[#A6093D] transition-colors">
@@ -923,31 +916,29 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-xs text-amber-300 font-mono uppercase tracking-wider mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>Pan-India City Chapter Inquiries</span>
+                <span>{HEAD.helpBadge}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
-                Have questions about your city’s audition or award jury timeline?
+                {HEAD.helpTitle}
               </h3>
-              <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed">
-                FSIA manages auditions and award screenings across 4,000+ cities in India. For direct slot confirmations, regional franchise dates, or special delegate accreditations, speak with the central secretariat.
+              <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed whitespace-pre-line">
+                {richText(HEAD.helpText)}
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <a
-                href="https://www.fsia.in/quickapply"
-                target="_blank"
-                rel="noopener noreferrer"
+              {HEAD.helpButton1Text && <a
+                {...linkProps(HEAD.helpButton1Url)}
                 className="px-5 py-2.5 text-xs font-semibold text-[#0C1322] bg-[#D4AF37] hover:bg-[#E5C158] rounded-xl transition-colors shadow-xs"
               >
-                Apply for Auditions 2026
-              </a>
-              <a
-                href="tel:+919983286999"
+                {HEAD.helpButton1Text}
+              </a>}
+              {HEAD.helpButton2Text && <a
+                {...linkProps(HEAD.helpButton2Url)}
                 className="px-4 py-2.5 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-colors"
               >
-                Call +91-99832-86999
-              </a>
+                {HEAD.helpButton2Text}
+              </a>}
             </div>
           </div>
         </div>

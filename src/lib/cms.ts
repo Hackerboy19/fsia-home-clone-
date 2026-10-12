@@ -59,3 +59,9 @@ export function cmsObject<T extends object>(key: string, fallback: T): T {
   const c = section(key);
   return c ? { ...fallback, ...(c as Partial<T>) } : fallback;
 }
+
+/** The "header" object saved next to a list section's items, over its defaults. */
+export function cmsHeader<T extends object>(key: string, fallback: T): T {
+  const h = section(key)?.header;
+  return h && typeof h === 'object' && !Array.isArray(h) ? { ...fallback, ...(h as Partial<T>) } : fallback;
+}

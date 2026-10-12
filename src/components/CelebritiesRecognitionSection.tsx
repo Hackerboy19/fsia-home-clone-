@@ -1,9 +1,12 @@
 import React from 'react';
 import { CELEBRITIES as DEFAULT_CELEBRITIES } from '../data/fsiaData';
-import { cmsList } from '../lib/cms';
+import { cmsHeader, cmsList } from '../lib/cms';
+import { DEFAULT_CELEBS_TEXT } from '../data/homeContent';
 import { CelebrityItem } from '../types';
 
 // Managed in the CMS admin (Homepage -> Celebrity Jury & Guests).
+// Headings and fixed text, edited under Homepage -> Celebrity Jury & Guests.
+const HEAD = cmsHeader('celebrities', DEFAULT_CELEBS_TEXT);
 const CELEBRITIES = cmsList<CelebrityItem>('celebrities', DEFAULT_CELEBRITIES);
 import { FSIAImage } from './FSIAImage';
 
@@ -16,13 +19,13 @@ export const CelebritiesRecognitionSection: React.FC = () => {
         <div className="max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FAF7F0] border border-[#D4AF37]/40 text-[#7E591B] text-[11px] font-semibold tracking-widest uppercase mb-4 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B]" />
-            <span>DISTINGUISHED DIGNITARIES &amp; MENTORS</span>
+            <span>{HEAD.badge}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-[#0C1322] tracking-tight">
-            CELEBRITY JURY &amp; GUESTS
+            {HEAD.title}
           </h2>
           <p className="text-base text-[#475569] mt-3 font-sans leading-relaxed">
-            Distinguished Bollywood icons, national jury members, and state dignitaries gracing the grand stage at Zee Studio Jaipur.
+            {HEAD.subtitle}
           </p>
         </div>
 
@@ -63,8 +66,8 @@ export const CelebritiesRecognitionSection: React.FC = () => {
                 </div>
 
                 <div className="pt-4 mt-6 border-t border-[#EADBAC] flex items-center justify-between text-xs text-[#7E591B] font-medium font-sans">
-                  <span>Official Grand Stage Guest</span>
-                  <span className="text-[#0C1322] font-semibold">Zee Studio Finale</span>
+                  <span>{HEAD.cardLeft}</span>
+                  <span className="text-[#0C1322] font-semibold text-right">{HEAD.cardRight}</span>
                 </div>
               </div>
             </div>
@@ -75,19 +78,19 @@ export const CelebritiesRecognitionSection: React.FC = () => {
         <div className="p-6 sm:p-8 border border-[#D4AF37]/40 bg-[#FAF8F2] grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h4 className="text-sm font-display font-bold text-[#0C1322] uppercase tracking-wider">
-              Government Registered Trademark • Class 41
+              {HEAD.box1Title}
             </h4>
             <p className="text-xs text-[#526077] font-sans mt-1.5 leading-relaxed">
-              Forever Star India Awards is an officially protected trademark under Govt. of India intellectual property laws, safeguarding the integrity of all titleholders and awardees.
+              {HEAD.box1Text}
             </p>
           </div>
 
           <div className="md:border-l md:border-[#EADBAC] md:pl-8">
             <h4 className="text-sm font-display font-bold text-[#0C1322] uppercase tracking-wider">
-              Grand Finale Arena • Zee Studio Jaipur
+              {HEAD.box2Title}
             </h4>
             <p className="text-xs text-[#526077] font-sans mt-1.5 leading-relaxed">
-              The grand crowning ceremonies are produced with broadcast cameras, specialized lighting rigs, national media coverage, and live streaming to millions of viewers.
+              {HEAD.box2Text}
             </p>
           </div>
         </div>
