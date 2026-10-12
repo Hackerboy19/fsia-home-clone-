@@ -56,7 +56,7 @@ export const TeamSection: React.FC = () => {
                   {member.designation}
                 </p>
 
-                <p className="text-xs text-[#526077] font-sans mt-3 leading-relaxed line-clamp-3">
+                <p className="text-xs text-[#526077] font-sans mt-3 leading-relaxed line-clamp-3 whitespace-pre-line">
                   {member.bio}
                 </p>
               </div>

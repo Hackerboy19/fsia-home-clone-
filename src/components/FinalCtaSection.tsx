@@ -39,7 +39,7 @@ export const FinalCtaSection: React.FC<FinalCtaSectionProps> = ({
           {CTA.heading}
         </h2>
 
-        <p className="text-base sm:text-lg text-[#EADBAC] font-sans max-w-2xl mx-auto leading-relaxed mb-10 font-normal">
+        <p className="text-base sm:text-lg text-[#EADBAC] font-sans max-w-2xl mx-auto leading-relaxed mb-10 font-normal whitespace-pre-line">
           {richText(CTA.text)}
         </p>
 

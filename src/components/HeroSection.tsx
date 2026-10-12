@@ -36,7 +36,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </p>
 
             {/* Authoritative Editorial Copy */}
-            <p className="text-base sm:text-lg text-[#334155] leading-relaxed max-w-2xl font-sans font-normal mb-8">
+            <p className="text-base sm:text-lg text-[#334155] leading-relaxed max-w-2xl font-sans font-normal mb-8 whitespace-pre-line">
               {richText(HERO.intro)}
             </p>
 
