@@ -36,13 +36,6 @@ export const Footer: React.FC<FooterProps> = ({
     }
   };
 
-  const handleNavClick = (sectionId: string, e: React.MouseEvent) => {
-    if (onNavigate) {
-      e.preventDefault();
-      onNavigate(sectionId);
-    }
-  };
-
   return (
     <>
       {/* Canonical FSIA footer CSS from footer1806.php */}
@@ -176,7 +169,6 @@ export const Footer: React.FC<FooterProps> = ({
                 <a href="https://www.fsia.in/miss-world-beauty-pageant.php">Miss World</a>
                 <a href="https://www.fsia.in/mrs-world-beauty-pageant.php">Mrs World</a>
                 <a href="https://www.fsia.in/star-india-kids-contest.php">Forever Star Kids</a>
-                <a href="https://www.fsia.in/register-nominate.php">Nominate Yourself</a>
               </div>
             </div>
 
@@ -184,16 +176,13 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="ft-col">
               <h4>Quick Links<span className="ft-cv">›</span></h4>
               <div className="ft-list">
-                <a href="#about" onClick={(e) => handleNavClick('about', e)}>About FSIA</a>
+                <a href="https://www.fsia.in/about.php">About FSIA</a>
                 <a href="https://www.fsia.in/contact.php">Contact Us</a>
-                <a href="#refund-policy" onClick={(e) => handleLegalClick('Refund Policy', e)}>Refund Policy</a>
-                <a href="#privacy-policy" onClick={(e) => handleLegalClick('Privacy Policy', e)}>Privacy Policy</a>
-                <a href="#termscondition" onClick={(e) => handleLegalClick('Terms & Conditions', e)}>Terms &amp; Conditions</a>
                 <a href="https://www.fsia.in/FAQ.php">FAQ</a>
-                <a href="#team" onClick={(e) => handleNavClick('team', e)}>Our Team</a>
-                <a href="https://www.fsia.in/news.php">News Coverage</a>
+                <a href="https://www.fsia.in/our-teams.php">Our Team</a>
+                <a href="https://www.fsia.in/news-coverage.php">News Coverage</a>
+                <a href="https://www.fsia.in/special-news-coverage.php">Special News Coverage</a>
                 <a href="https://www.fsia.in/online-franchise-application" target="_blank" rel="noopener noreferrer">Apply for Franchise</a>
-                <a href="/admin-preview.html" target="_blank" rel="noopener noreferrer" style={{ color: '#D4AF37', fontWeight: 600 }}>★ Admin Panel Preview (Dev)</a>
                 <a href="https://www.fsia.in/sitemap.php" target="_blank" rel="noopener noreferrer">Sitemap</a>
               </div>
             </div>

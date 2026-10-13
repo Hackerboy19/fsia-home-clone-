@@ -21,6 +21,13 @@ import { TeamModal } from './components/TeamModal';
 // Types
 import { PageantItem, AwardItem, WinnerItem, ArticleItem } from './types';
 
+// Links whose section is not on the homepage open these pages.
+const PAGE_FALLBACKS: Record<string, string> = {
+  about: 'https://www.fsia.in/about.php',
+  contact: 'https://www.fsia.in/contact.php',
+  faq: 'https://www.fsia.in/FAQ.php',
+};
+
 export default function App() {
   // Modal states
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -77,6 +84,9 @@ export default function App() {
     const el = document.getElementById(sectionId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
+    } else if (PAGE_FALLBACKS[sectionId]) {
+      // No such section on the homepage: open the matching page instead.
+      window.location.href = PAGE_FALLBACKS[sectionId];
     }
   };
 

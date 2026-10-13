@@ -28,7 +28,8 @@ export const TeamSection: React.FC = () => {
         </div>
 
         {/* Featured leader */}
-        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+        {/* One card: a single centred column. Two or more: side by side. */}
+        <div className={`mx-auto grid grid-cols-1 gap-12 ${FEATURED.length > 1 ? 'max-w-4xl md:grid-cols-2' : 'max-w-md'}`}>
           {FEATURED.map((member, i) => (
             <div
               key={`${member.name}-${i}`}
