@@ -18,7 +18,24 @@ import {
   X,
   Share2
 } from 'lucide-react';
-import { UPCOMING_EVENTS } from '../data/fsiaData';
+import { UPCOMING_EVENTS as DEFAULT_EVENTS } from '../data/fsiaData';
+import { cmsHeader, cmsList } from '../lib/cms';
+import { linkProps, richText } from '../lib/richText';
+import { DEFAULT_CALENDAR_TEXT } from '../data/homeContent';
+
+// Headings and fixed text, edited under Homepage -> Event Calendar.
+const HEAD = cmsHeader('calendar_events', DEFAULT_CALENDAR_TEXT);
+
+// Events come from the CMS admin (Homepage -> Event Calendar), sorted by date.
+const UPCOMING_EVENTS: EventCalendarItem[] = [...cmsList<EventCalendarItem>('calendar_events', DEFAULT_EVENTS)]
+  .filter((e) => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date || ''))
+  .map((e) => ({ ...e, highlights: Array.isArray(e.highlights) ? e.highlights : [] }))
+  .sort((a, b) => a.date.localeCompare(b.date));
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const TODAY = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
+// Open on the next upcoming event (or today when nothing is scheduled ahead).
+const START_DATE = (UPCOMING_EVENTS.find((e) => e.date >= TODAY) || { date: TODAY }).date;
 import { EventCalendarItem } from '../types';
 import { FSIAImage } from './FSIAImage';
 
@@ -37,9 +54,9 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
   onExploreAwards
 }) => {
   // Current reference date: September 2026
-  const [currentYear, setCurrentYear] = useState<number>(2026);
-  const [currentMonth, setCurrentMonth] = useState<number>(9); // 0-indexed: 9 = October 2026 (or 8 for Sept)
-  const [selectedDate, setSelectedDate] = useState<string>('2026-10-05');
+  const [currentYear, setCurrentYear] = useState<number>(Number(START_DATE.slice(0, 4)));
+  const [currentMonth, setCurrentMonth] = useState<number>(Number(START_DATE.slice(5, 7)) - 1); // 0-indexed
+  const [selectedDate, setSelectedDate] = useState<string>(START_DATE);
   const [activeFilter, setActiveFilter] = useState<EventFilterType>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -68,11 +85,16 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
             event.category.toLowerCase().includes(q) ||
             event.city.toLowerCase().includes(q) ||
             event.venue.toLowerCase().includes(q) ||
-            event.description.toLowerCase().includes(q);
+            event.description.toLowerCase().includes(q) ||
+            (event.keywords || []).some((k) => k.toLowerCase().includes(q));
 
       return matchesFilter && matchesSearch;
     });
   }, [activeFilter, searchQuery]);
+
+  // Days that match the active category filter or search keyword
+  const isFiltering = activeFilter !== 'all' || searchQuery.trim() !== '';
+  const matchingDates = useMemo(() => new Set(filteredEvents.map((e) => e.date)), [filteredEvents]);
 
   // Map of events by date string "YYYY-MM-DD"
   const eventsByDate = useMemo(() => {
@@ -116,9 +138,11 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
   // Jump to today / reference date (September/October 2026)
   const handleJumpToCurrent = () => {
-    setCurrentYear(2026);
-    setCurrentMonth(9); // October 2026
-    setSelectedDate('2026-10-05');
+    // "Season Peak" = first upcoming event marked Featured in the CMS, else the next event.
+    const peak = (UPCOMING_EVENTS.find((e) => e.highlight && e.date >= TODAY) || UPCOMING_EVENTS.find((e) => e.date >= TODAY))?.date || START_DATE;
+    setCurrentYear(Number(peak.slice(0, 4)));
+    setCurrentMonth(Number(peak.slice(5, 7)) - 1);
+    setSelectedDate(peak);
   };
 
   // Calculate calendar grid days
@@ -262,7 +286,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
   // Quick jump to next event
   const handleJumpToNextUpcoming = () => {
-    const todayStr = '2026-09-24';
+    const todayStr = TODAY;
     const next = UPCOMING_EVENTS.find((e) => e.date >= todayStr);
     if (next) {
       const [y, m] = next.date.split('-').map(Number);
@@ -283,39 +307,28 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
         {/* Editorial Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6 pb-6 border-b border-[#EADBAC]/80">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-[#B8860B] font-semibold mb-3">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs uppercase tracking-widest text-[#B8860B] font-semibold mb-3">
               <CalendarIcon className="w-4 h-4 text-[#B8860B]" />
-              <span>Official Season 2026 &amp; 2027 Schedule</span>
-              <span aria-hidden="true">·</span>
-              <span className="text-[#A6093D] font-bold">Zee Studio Production Hub</span>
+              <span>{HEAD.badge}</span>
+              {HEAD.badge2 && <span className="text-[#A6093D] font-bold">{HEAD.badge2}</span>}
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#0C1322] tracking-tight leading-tight">
-              Pageant &amp; National Award Calendar
+              {HEAD.title}
             </h2>
-            <p className="mt-3 text-stone-600 text-sm sm:text-base leading-relaxed">
-              Explore official dates for nationwide auditions, teen masterclasses, state semi-finals, jury evaluations, and the grand coronation ceremony at Zee Studio Jaipur. Select any date to inspect the verified itinerary.
+            <p className="mt-3 text-stone-600 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+              {richText(HEAD.subtitle)}
             </p>
           </div>
 
-          {/* Quick Metrics / Action Strip */}
-          <div className="flex flex-wrap items-center gap-4 text-xs text-stone-600">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#A6093D]" />
-              <span className="font-semibold text-stone-900">4,000+</span>
-              <span>City Auditions</span>
-            </div>
-            <span aria-hidden="true" className="text-stone-300">|</span>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#D4AF37]" />
-              <span className="font-semibold text-stone-900">Dec 18</span>
-              <span>Grand Coronation</span>
-            </div>
-            <span aria-hidden="true" className="text-stone-300">|</span>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#78350F]" />
-              <span className="font-semibold text-stone-900">Dec 20</span>
-              <span>Gala Felicitation</span>
-            </div>
+          {/* Quick Metrics (no "|" separators: they dangle when the row wraps) */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-stone-600">
+            {(Array.isArray(HEAD.highlights) ? HEAD.highlights : []).map((h, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: h.color || '#D4AF37' }} />
+                <span className="font-semibold text-stone-900">{h.value}</span>
+                <span>{h.label}</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -467,8 +480,11 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
               <div className="grid grid-cols-7 gap-1 sm:gap-2" role="grid">
                 {calendarGrid.map((cell, idx) => {
                   const hasEvents = cell.events.length > 0;
+                  const isMatch = isFiltering && matchingDates.has(cell.dateString);
+                  const isDimmed = isFiltering && hasEvents && !isMatch;
+                  const isFeatured = cell.events.some((e) => e.highlight);
                   const isSelected = cell.dateString === selectedDate;
-                  const isCurrentDay = cell.dateString === '2026-09-24';
+                  const isCurrentDay = cell.dateString === TODAY;
 
                   // Determine event type color indicator
                   const firstEventType = cell.events[0]?.type;
@@ -492,8 +508,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           : cell.isCurrentMonth
                           ? 'bg-white hover:bg-stone-50 border-stone-100 text-stone-800'
                           : 'bg-stone-50/60 border-transparent text-stone-300'
-                      }`}
-                      aria-label={`${cell.dateString} ${hasEvents ? `- ${cell.events.length} event(s)` : ''}`}
+                      } ${isMatch && !isSelected ? 'ring-2 ring-[#D4AF37] border-[#B8860B]' : ''} ${isDimmed ? 'opacity-40' : ''}`}
+                      aria-label={`${cell.dateString} ${hasEvents ? `- ${cell.events.length} event(s)` : ''}${isFeatured ? ' (featured)' : ''}`}
                     >
                       {/* Day Number and Today Indicator */}
                       <div className="w-full flex items-center justify-between">
@@ -509,6 +525,9 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           {cell.dayNumber}
                         </span>
 
+                        {isFeatured && !isCurrentDay && (
+                          <span className="text-[10px] leading-none text-[#B8860B]" title="Featured event" aria-hidden="true">★</span>
+                        )}
                         {isCurrentDay && (
                           <span
                             className="text-[9px] uppercase font-bold px-1 py-0.2 bg-[#A6093D] text-white rounded"
@@ -606,7 +625,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                       className="border border-stone-200/90 rounded-xl p-4 bg-stone-50/40 hover:bg-white hover:border-[#B8860B]/60 transition-all duration-200 group"
                     >
                       {/* Event Banner / Thumbnail */}
-                      <div className="relative h-32 w-full rounded-lg overflow-hidden mb-4 bg-stone-900">
+                      <div className="relative aspect-[16/9] w-full rounded-lg overflow-hidden mb-4 bg-stone-900">
                         <FSIAImage
                           src={event.image}
                           alt={event.title}
@@ -803,14 +822,13 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
                         {/* Title and Metadata */}
                         <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-1.5 text-xs text-stone-500">
+                          {/* Inline text, "·" glued to the previous part: it never starts or ends a wrapped line alone. */}
+                          <div className="mb-1.5 text-xs text-stone-500">
                             <span className="font-semibold text-[#A6093D] uppercase tracking-wide">
                               {getEventBadgeLabel(event.type)}
                             </span>
-                            <span aria-hidden="true">·</span>
-                            <span className="text-stone-700">{event.category}</span>
-                            <span aria-hidden="true">·</span>
-                            <span className="font-mono text-stone-600">{event.time}</span>
+                            {event.category && <>{'\u00A0· '}<span className="text-stone-700">{event.category}</span></>}
+                            {event.time && <>{'\u00A0· '}<span className="font-mono text-stone-600">{event.time}</span></>}
                           </div>
 
                           <h4 className="text-lg sm:text-xl font-serif font-bold text-[#0C1322] group-hover:text-[#A6093D] transition-colors">
@@ -898,31 +916,29 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-xs text-amber-300 font-mono uppercase tracking-wider mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-[#D4AF37]" />
-                <span>Pan-India City Chapter Inquiries</span>
+                <span>{HEAD.helpBadge}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-serif font-bold text-white">
-                Have questions about your city’s audition or award jury timeline?
+                {HEAD.helpTitle}
               </h3>
-              <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed">
-                FSIA manages auditions and award screenings across 4,000+ cities in India. For direct slot confirmations, regional franchise dates, or special delegate accreditations, speak with the central secretariat.
+              <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed whitespace-pre-line">
+                {richText(HEAD.helpText)}
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <a
-                href="https://www.fsia.in/quickapply"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 py-2.5 text-xs font-semibold text-[#0C1322] bg-[#D4AF37] hover:bg-[#E5C158] rounded-xl transition-colors shadow-xs"
+            <div className="flex flex-wrap items-center gap-3 md:justify-end md:max-w-[50%]">
+              {HEAD.helpButton1Text && <a
+                {...linkProps(HEAD.helpButton1Url)}
+                className="max-w-full text-center px-5 py-2.5 text-xs font-semibold text-[#0C1322] bg-[#D4AF37] hover:bg-[#E5C158] rounded-xl transition-colors shadow-xs"
               >
-                Apply for Auditions 2026
-              </a>
-              <a
-                href="tel:+919983286999"
-                className="px-4 py-2.5 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-colors"
+                {HEAD.helpButton1Text}
+              </a>}
+              {HEAD.helpButton2Text && <a
+                {...linkProps(HEAD.helpButton2Url)}
+                className="max-w-full text-center px-4 py-2.5 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-colors"
               >
-                Call +91-99832-86999
-              </a>
+                {HEAD.helpButton2Text}
+              </a>}
             </div>
           </div>
         </div>
@@ -951,7 +967,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
             </button>
 
             {/* Modal Hero Banner */}
-            <div className="relative h-48 sm:h-56 w-full bg-stone-900">
+            <div className="relative aspect-[16/9] max-h-[45vh] w-full bg-stone-900">
               <FSIAImage
                 src={detailModalEvent.image}
                 alt={detailModalEvent.title}

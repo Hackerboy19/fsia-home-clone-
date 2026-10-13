@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { VERIFIED_STATISTICS } from '../data/fsiaData';
+import { cmsObject } from '../lib/cms';
+import { DEFAULT_STATS } from '../data/homeContent';
+
+// Edited under Homepage -> Stats in the CMS admin.
+const STATS = cmsObject('home_stats', DEFAULT_STATS);
+const VERIFIED_STATISTICS = (Array.isArray(STATS.items) ? STATS.items : []).filter((s) => s && s.label);
 
 interface AnimatedCounterProps {
   target: number;
@@ -111,6 +116,7 @@ export const TrustStatsSection: React.FC = () => {
   return (
     <section
       ref={sectionRef}
+      id="stats"
       className="w-full bg-[#FFFFFF] border-b border-[#EADBAC]/60 py-10 sm:py-12 relative overflow-hidden"
       aria-label="Verified Institutional Statistics"
     >
@@ -120,15 +126,12 @@ export const TrustStatsSection: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
           {VERIFIED_STATISTICS.map((stat, idx) => {
             // Determine numeric target and suffix
-            const numeric =
-              'numericTarget' in stat && typeof stat.numericTarget === 'number'
-                ? stat.numericTarget
-                : parseInt(stat.value.replace(/[^0-9]/g, ''), 10) || 0;
-            const suffix = 'suffix' in stat && typeof stat.suffix === 'string' ? stat.suffix : '+';
+            const numeric = Number(String(stat.value).replace(/[^0-9.]/g, '')) || 0;
+            const suffix = typeof stat.suffix === 'string' ? stat.suffix : '+';
 
             return (
               <div
-                key={stat.label}
+                key={`${stat.label}-${idx}`}
                 className={`flex flex-col py-2 transition-all duration-700 ${
                   idx !== 0 ? 'md:border-l md:border-[#EADBAC] md:pl-8' : ''
                 }`}
@@ -164,13 +167,13 @@ export const TrustStatsSection: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#B8860B] shrink-0" />
             <span className="font-semibold text-[#0C1322]">
-              Democratic Grassroots Model:
+              {STATS.footerTitle}
             </span>
-            <span>Auditioning talent across 28 States &amp; Union Territories without bias.</span>
+            <span>{STATS.footerText}</span>
           </div>
 
           <div className="text-[11px] text-[#7E591B] font-medium tracking-wide">
-            Source: Official FSIA Registered Trademark Documentation (Class 41)
+            {STATS.source}
           </div>
         </div>
 

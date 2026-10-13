@@ -132,6 +132,8 @@ export interface EventCalendarItem {
   ctaText: string;
   ctaUrl: string;
   image: string;
+  keywords?: string[]; // extra search terms set in the CMS admin
+  highlight?: boolean; // show a "Featured" marker on the calendar day
 }
 
 export interface SuccessStorySlide {

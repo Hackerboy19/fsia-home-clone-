@@ -1,5 +1,11 @@
 import React from 'react';
-import { PARTNERS } from '../data/fsiaData';
+import { cmsObject } from '../lib/cms';
+import { linkProps } from '../lib/richText';
+import { DEFAULT_PARTNERS } from '../data/homeContent';
+
+// Edited under Homepage -> Partners in the CMS admin.
+const P = cmsObject('home_partners', DEFAULT_PARTNERS);
+const PARTNERS = Array.isArray(P.items) ? P.items.filter((x) => x && x.name) : [];
 import { FSIAImage } from './FSIAImage';
 
 export const OfficialPartnersSection: React.FC = () => {
@@ -11,13 +17,13 @@ export const OfficialPartnersSection: React.FC = () => {
         <div className="max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#D4AF37]/40 text-[#7E591B] text-[11px] font-semibold tracking-widest uppercase mb-4 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B]" />
-            <span>OFFICIAL ALLIANCES &amp; BROADCAST COLLABORATORS</span>
+            <span>{P.badge}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-[#0C1322] tracking-tight">
-            OFFICIAL PARTNERS
+            {P.title}
           </h2>
           <p className="text-base text-[#475569] mt-3 font-sans leading-relaxed">
-            Leading media networks, state tourism initiatives, production houses, and lifestyle brands collaborating with Forever Star India.
+            {P.subtitle}
           </p>
         </div>
 
@@ -25,7 +31,7 @@ export const OfficialPartnersSection: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
           {PARTNERS.map((partner) => (
             <div
-              key={partner.id}
+              key={partner.id || partner.name}
               className="bg-white border border-[#EADBAC] p-5 shadow-2xs hover:border-[#D4AF37] transition-colors flex flex-col justify-between items-center text-center group h-full"
             >
               {/* Logo Container with object-contain */}
@@ -57,21 +63,19 @@ export const OfficialPartnersSection: React.FC = () => {
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-5 bg-white p-6 border border-[#EADBAC] max-w-4xl mx-auto">
           <div>
             <p className="text-xs font-bold text-[#0C1322] uppercase tracking-wider font-sans">
-              Documented FSIA Sponsors &amp; Institutional Partners
+              {P.noticeTitle}
             </p>
             <p className="text-xs text-[#64748B] font-sans mt-0.5">
-              Displaying verified organizations and broadcasting partners affiliated with the official portal.
+              {P.noticeText}
             </p>
           </div>
 
-          <a
-            href="https://www.fsia.in/sponsors.php"
-            target="_blank"
-            rel="noopener noreferrer"
+          {P.buttonText && <a
+            {...linkProps(P.buttonUrl)}
             className="inline-flex items-center px-6 py-2.5 bg-[#0C1322] hover:bg-[#1A253E] text-[#EADBAC] hover:text-white text-xs font-bold uppercase tracking-wider border border-[#D4AF37]/50 transition-colors shrink-0"
           >
-            ALL SPONSORS DIRECTORY &rarr;
-          </a>
+            {P.buttonText}
+          </a>}
         </div>
 
       </div>

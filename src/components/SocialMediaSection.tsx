@@ -1,5 +1,13 @@
 import React from 'react';
-import { FSIA_SOCIAL_PLATFORMS } from '../data/fsiaData';
+import { FSIA_SOCIAL_PLATFORMS as DEFAULT_PLATFORMS } from '../data/fsiaData';
+import { cmsHeader, cmsList } from '../lib/cms';
+import { DEFAULT_SOCIAL_TEXT } from '../data/homeContent';
+import { SocialPlatformItem } from '../types';
+
+// Managed in the CMS admin (Homepage -> Social Media Profiles).
+// Headings and fixed text, edited under Homepage -> Social Media.
+const HEAD = cmsHeader('social_profiles', DEFAULT_SOCIAL_TEXT);
+const FSIA_SOCIAL_PLATFORMS = cmsList<SocialPlatformItem>('social_profiles', DEFAULT_PLATFORMS);
 
 export const SocialMediaSection: React.FC = () => {
   return (
@@ -10,13 +18,13 @@ export const SocialMediaSection: React.FC = () => {
         <div className="max-w-3xl mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FAF7F0] border border-[#D4AF37]/40 text-[#7E591B] text-[11px] font-semibold tracking-widest uppercase mb-4 shadow-2xs">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8860B]" />
-            <span>OFFICIAL BROADCAST &amp; COMMUNITY FEEDS</span>
+            <span>{HEAD.badge}</span>
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-[#0C1322] tracking-tight">
-            CONNECT WITH FSIA
+            {HEAD.title}
           </h2>
           <p className="text-base text-[#475569] mt-3 font-sans leading-relaxed">
-            Follow the live crowning ceremonies, behind-the-scenes masterclasses, delegate highlights, and nationwide coronation coverage across our official verified media handles.
+            {HEAD.subtitle}
           </p>
         </div>
 
@@ -28,6 +36,23 @@ export const SocialMediaSection: React.FC = () => {
               className="bg-[#FAF9F5] border border-[#EADBAC] p-6 flex flex-col justify-between hover:border-[#D4AF37] transition-colors shadow-2xs"
             >
               <div>
+                {platform.thumbnail && (
+                  <a
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block -mx-6 -mt-6 mb-5 aspect-[16/10] overflow-hidden bg-[#EDE8DC] border-b border-[#EADBAC]"
+                    aria-label={`${platform.name}: ${platform.profileName}`}
+                  >
+                    <img
+                      src={platform.thumbnail}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover object-top"
+                    />
+                  </a>
+                )}
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-xs font-bold font-sans uppercase tracking-widest text-[#B8860B]">
                     {platform.name}
@@ -56,7 +81,7 @@ export const SocialMediaSection: React.FC = () => {
                   OPEN CHANNEL &rarr;
                 </a>
                 <span className="text-[10px] text-[#7E591B] font-semibold uppercase tracking-wider">
-                  Verified Official
+                  {HEAD.cardTag}
                 </span>
               </div>
             </div>
@@ -64,11 +89,11 @@ export const SocialMediaSection: React.FC = () => {
         </div>
 
         {/* Live Broadcast Note */}
-        <div className="mt-12 p-6 bg-[#FAF8F2] border border-[#D4AF37]/40 text-center max-w-3xl mx-auto">
+        {HEAD.note && <div className="mt-12 p-6 bg-[#FAF8F2] border border-[#D4AF37]/40 text-center max-w-3xl mx-auto">
           <p className="text-xs text-[#526077] font-sans">
-            All coronation ceremonies, contestant walk-throughs, and celebrity felicitation segments are livestreamed exclusively on the official Forever Star India YouTube and social channels.
+            {HEAD.note}
           </p>
-        </div>
+        </div>}
 
       </div>
     </section>

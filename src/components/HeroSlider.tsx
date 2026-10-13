@@ -8,19 +8,17 @@ import {
   Calendar,
   ExternalLink,
   Settings,
-  Maximize2,
-  Minimize2,
   Image as ImageIcon,
   Plus,
   Smartphone,
   Monitor,
   ZoomIn,
   ZoomOut,
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
 import { FSIAImage } from './FSIAImage';
 import { SliderTimerOptionsModal, SlideTimerConfig } from './SliderTimerOptionsModal';
+import { cmsList } from '../lib/cms';
 
 export const DEFAULT_HERO_SLIDES: SlideTimerConfig[] = [
   {
@@ -113,18 +111,20 @@ export const DEFAULT_HERO_SLIDES: SlideTimerConfig[] = [
 const STORAGE_KEY = 'fsia_hero_slider_settings_v4';
 
 export const HeroSlider: React.FC = () => {
-  // Load initial slides from localStorage or fallback to defaults
+  // Slides come from the CMS admin (Homepage -> Hero Slider), else the defaults.
+  // localStorage is no longer read: it only ever held one browser's local
+  // edits, which visitors never saw and which would hide CMS updates.
+  // Slides outside their start/end window are skipped (if that would leave
+  // none, all are shown rather than an empty hero).
   const [slides, setSlides] = useState<SlideTimerConfig[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {
-      // Fallback
-    }
-    return DEFAULT_HERO_SLIDES;
+    const all = cmsList<SlideTimerConfig>('hero_slides', DEFAULT_HERO_SLIDES).filter((s) => s && s.image);
+    const now = Date.now();
+    const live = all.filter((s) => {
+      const start = s.startDate ? new Date(s.startDate).getTime() : NaN;
+      const end = s.endDate ? new Date(s.endDate).getTime() : NaN;
+      return !(start > now) && !(end < now);
+    });
+    return live.length > 0 ? live : all;
   });
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -171,23 +171,12 @@ export const HeroSlider: React.FC = () => {
   const currentSlide = slides[currentIndex] || slides[0] || DEFAULT_HERO_SLIDES[0];
 
   // Helper to determine display-effective fit mode for each slide
+  // Slides are never cropped: the stage is 4:5 on every screen, so a 4:5
+  // (1080 × 1350) image fills it exactly and any other shape is shown whole,
+  // with the blurred copy behind it filling the rest. (fitMode is ignored.)
   const getEffectiveFitMode = useCallback(
-    (slide: SlideTimerConfig): 'contain' | 'cover' => {
-      if (slide.fitMode === 'contain') return 'contain';
-      if (slide.fitMode === 'cover') return 'cover';
-      
-      // If 'auto' (Display Adaptive):
-      // Posters with text need 'contain' so crucial dates, cities, and URLs aren't cut off
-      const isFlyer = /pageant|award|audition|poster|flyer|trophy|season\s*\d+/i.test(
-        `${slide.title} ${slide.badge} ${slide.image}`
-      );
-      if (isFlyer) return 'contain';
-
-      // Stage / catwalk landscape photos:
-      // On mobile screens, 'contain' ensures stage edges aren't sliced, while on desktop 'cover' fills arena
-      return isMobileDisplay ? 'contain' : 'cover';
-    },
-    [isMobileDisplay]
+    (_slide: SlideTimerConfig): 'contain' | 'cover' => 'contain',
+    []
   );
 
   const handleNext = useCallback(() => {
@@ -203,23 +192,6 @@ export const HeroSlider: React.FC = () => {
   const goToSlide = (index: number) => {
     setProgressPercent(0);
     setCurrentIndex(index);
-  };
-
-  // Cycle image fit mode on the active slide: auto -> contain -> cover -> auto
-  const cycleActiveFitMode = () => {
-    const updated = slides.map((s, idx) => {
-      if (idx !== currentIndex) return s;
-      const currentFit = s.fitMode;
-      const nextFit: 'contain' | 'cover' | 'auto' =
-        currentFit === 'auto' ? 'contain' : currentFit === 'contain' ? 'cover' : 'auto';
-      return { ...s, fitMode: nextFit };
-    });
-    setSlides(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    } catch {
-      // Ignore
-    }
   };
 
   const handleOpenChangeImage = () => {
@@ -447,38 +419,7 @@ export const HeroSlider: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Display Mode & Fit Mode Toggle */}
-          <button
-            type="button"
-            onClick={cycleActiveFitMode}
-            title={`Current: ${
-              currentSlide.fitMode === 'auto'
-                ? 'Auto-Adaptive (Screen Aware)'
-                : currentSlide.fitMode === 'contain'
-                ? 'Uncropped Poster (Contain)'
-                : 'Fill Stage (Cover)'
-            }. Click to cycle mode.`}
-            className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#1A253E] hover:bg-[#243356] text-[#EADBAC] border border-[#D4AF37]/40 text-[10px] font-sans font-semibold rounded-xs transition-colors cursor-pointer"
-          >
-            {currentSlide.fitMode === 'auto' ? (
-              <>
-                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
-                <span>Auto-Fit</span>
-              </>
-            ) : currentSlide.fitMode === 'contain' ? (
-              <>
-                <Minimize2 className="w-3 h-3 text-[#D4AF37]" />
-                <span className="hidden sm:inline">Uncropped</span>
-                <span className="sm:hidden">Full</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 className="w-3 h-3 text-[#D4AF37]" />
-                <span>Fill</span>
-              </>
-            )}
-          </button>
-
+          {/* (No fit-mode toggle: slides are always shown whole in a fixed 4:5 frame.) */}
           {/* Fullscreen / Zoom Lightbox Button */}
           <button
             type="button"
@@ -552,9 +493,9 @@ export const HeroSlider: React.FC = () => {
         </div>
       </div>
 
-      {/* VISUAL SLIDER STAGE (Dynamically Sized per Display: Mobile, Tablet, Desktop) */}
+      {/* VISUAL SLIDER STAGE: one 4:5 portrait shape on every screen (recommended image: 1080 × 1350 px) */}
       <div
-        className="relative overflow-hidden bg-[#0B1220] w-full flex items-center justify-center border border-[#D4AF37]/20 transition-[height] duration-300 h-[290px] xs:h-[340px] sm:h-[400px] md:h-[460px] lg:h-[490px] xl:h-[520px]"
+        className="relative overflow-hidden bg-[#0B1220] w-full aspect-[4/5] flex items-center justify-center border border-[#D4AF37]/20"
       >
         {/* Render stacked slides with smooth opacity crossfade */}
         {slides.map((slide, index) => {
