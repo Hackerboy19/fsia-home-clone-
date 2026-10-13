@@ -68,9 +68,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <div className="pt-5 border-t border-[#EADBAC] flex flex-wrap items-center gap-y-3 gap-x-6 text-xs text-[#526077] font-sans">
               {/* No "•" separators: with long facts the row wraps and a separator is left dangling. */}
               {credentials.map((c, i) => (
-                <div key={i} className="flex items-baseline gap-2">
-                  <span className="font-semibold text-[#0C1322] shrink-0">{c.label}</span>
-                  <span>{c.value}</span>
+                <div key={i} className="max-w-full break-words">
+                  {c.label && <span className="font-semibold text-[#0C1322]">{c.label}</span>}
+                  {c.label && c.value ? ' ' : null}
+                  {c.value && <span>{c.value}</span>}
                 </div>
               ))}
             </div>

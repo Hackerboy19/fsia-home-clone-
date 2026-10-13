@@ -926,16 +926,16 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-3 md:justify-end md:max-w-[50%]">
               {HEAD.helpButton1Text && <a
                 {...linkProps(HEAD.helpButton1Url)}
-                className="px-5 py-2.5 text-xs font-semibold text-[#0C1322] bg-[#D4AF37] hover:bg-[#E5C158] rounded-xl transition-colors shadow-xs"
+                className="max-w-full text-center px-5 py-2.5 text-xs font-semibold text-[#0C1322] bg-[#D4AF37] hover:bg-[#E5C158] rounded-xl transition-colors shadow-xs"
               >
                 {HEAD.helpButton1Text}
               </a>}
               {HEAD.helpButton2Text && <a
                 {...linkProps(HEAD.helpButton2Url)}
-                className="px-4 py-2.5 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-colors"
+                className="max-w-full text-center px-4 py-2.5 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-colors"
               >
                 {HEAD.helpButton2Text}
               </a>}
