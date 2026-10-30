@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -60,19 +61,122 @@ const typeInfo = (id: string): EventType =>
   ALL_TYPES.find((t) => t.id === id) || { id, label: 'Official Event', badge: 'Official Event', color: '#059669' };
 
 // PDF / PPT attached to an event in the CMS (brochure, schedule, rules).
+// Clicking opens it inside the page (DocViewer) instead of downloading it.
+type DocKind = 'PDF' | 'PPT';
+type OpenDoc = { kind: DocKind; url: string; title: string };
 const safeDocUrl = (u?: string) => (typeof u === 'string' && /^(https?:\/\/|\/(?!\/))/i.test(u.trim()) ? u.trim() : '');
-const DocLinks: React.FC<{ event: EventCalendarItem; className: string }> = ({ event, className }) => (
+const DOC_COLOR: Record<DocKind, string> = { PDF: '#DC2626', PPT: '#EA580C' };
+const DocLinks: React.FC<{ event: EventCalendarItem; className: string; onOpen: (d: OpenDoc) => void }> = ({ event, className, onOpen }) => (
   <>
-    {([['PDF', event.pdfUrl, '#DC2626'], ['PPT', event.pptUrl, '#EA580C']] as const).map(([label, url, color]) =>
+    {([['PDF', event.pdfUrl], ['PPT', event.pptUrl]] as [DocKind, string | undefined][]).map(([kind, url]) =>
       safeDocUrl(url) ? (
-        <a key={label} href={safeDocUrl(url)} target="_blank" rel="noopener noreferrer" className={className} title={`Download ${label}`}>
-          <span className="text-[9px] font-extrabold text-white rounded px-1 py-0.5" style={{ backgroundColor: color }}>{label}</span>
-          <span>{label}</span>
-        </a>
+        <button key={kind} type="button" onClick={() => onOpen({ kind, url: safeDocUrl(url), title: event.title })} className={className} title={`View ${kind}`}>
+          <span className="text-[9px] font-extrabold text-white rounded px-1 py-0.5" style={{ backgroundColor: DOC_COLOR[kind] }}>{kind}</span>
+          <span>View {kind}</span>
+        </button>
       ) : null
     )}
   </>
 );
+
+// pdf.js draws each PDF page as an image, so PDFs show the same on phones and computers.
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+type PdfJs = {
+  GlobalWorkerOptions: { workerSrc: string };
+  getDocument: (url: string) => { promise: Promise<{ numPages: number; getPage: (n: number) => Promise<{
+    getViewport: (o: { scale: number }) => { width: number; height: number };
+    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
+  }> }> };
+};
+let pdfJsLoading: Promise<PdfJs> | null = null;
+function loadPdfJs(): Promise<PdfJs> {
+  const w = window as unknown as { pdfjsLib?: PdfJs };
+  if (w.pdfjsLib) return Promise.resolve(w.pdfjsLib);
+  if (!pdfJsLoading) {
+    pdfJsLoading = new Promise((ok, fail) => {
+      const sc = document.createElement('script');
+      sc.src = `${PDFJS}pdf.min.js`;
+      sc.onload = () => { w.pdfjsLib!.GlobalWorkerOptions.workerSrc = `${PDFJS}pdf.worker.min.js`; ok(w.pdfjsLib!); };
+      sc.onerror = () => { pdfJsLoading = null; fail(new Error('pdf.js')); };
+      document.head.appendChild(sc);
+    });
+  }
+  return pdfJsLoading;
+}
+
+const PdfPages: React.FC<{ url: string }> = ({ url }) => {
+  const box = React.useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading');
+  React.useEffect(() => {
+    let alive = true;
+    const host = box.current;
+    if (!host) return undefined;
+    host.textContent = '';
+    loadPdfJs()
+      .then((lib) => lib.getDocument(url).promise)
+      .then(async (pdf) => {
+        if (alive) setState('ok');
+        const scale = Math.min(2, (window.devicePixelRatio || 1) * 1.5);
+        for (let n = 1; n <= pdf.numPages && alive; n++) {
+          const pg = await pdf.getPage(n);
+          const vp = pg.getViewport({ scale });
+          const cv = document.createElement('canvas');
+          cv.width = vp.width; cv.height = vp.height;
+          cv.style.width = `${vp.width / scale}px`;
+          cv.className = 'block max-w-full !h-auto mx-auto mb-3 bg-white shadow-md';
+          host.appendChild(cv);
+          await pg.render({ canvasContext: cv.getContext('2d')!, viewport: vp }).promise;
+        }
+      })
+      .catch(() => alive && setState('error'));
+    return () => { alive = false; };
+  }, [url]);
+  return (
+    <div className="flex-1 overflow-auto bg-stone-200 p-3 text-center">
+      {state === 'loading' && <p className="py-10 text-sm text-stone-600">Loading…</p>}
+      {state === 'error' && <p className="py-10 text-sm text-stone-600">This file could not be shown here. Use Download to open it.</p>}
+      <div ref={box} />
+    </div>
+  );
+};
+
+const DocViewer: React.FC<{ doc: OpenDoc; onClose: () => void }> = ({ doc, onClose }) => {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+  // Rendered on <body> so the site header and ticker never sit on top of it.
+  return createPortal(
+    <div style={{ zIndex: 2147483646 }} className="fixed inset-0 flex items-center justify-center p-2 sm:p-6 bg-black/70" role="dialog" aria-modal="true" aria-label={`${doc.kind}: ${doc.title}`} onClick={onClose}>
+      <div className="flex flex-col w-full max-w-5xl h-[92vh] bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200">
+          <span className="text-[10px] font-extrabold text-white rounded px-1.5 py-0.5" style={{ backgroundColor: DOC_COLOR[doc.kind] }}>{doc.kind}</span>
+          <span className="flex-1 min-w-0 truncate text-sm font-semibold text-[#0C1322]">{doc.title}</span>
+          <a href={doc.url} download target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-medium text-stone-700 border border-stone-200 rounded-lg hover:bg-stone-50 flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Download</span>
+          </a>
+          <button type="button" onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        {doc.kind === 'PPT' ? (
+          // PowerPoint has no viewer in the browser: Microsoft's free Office viewer shows it (the file must be public).
+          <iframe
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(new URL(doc.url, window.location.href).href)}`}
+            title={`${doc.kind}: ${doc.title}`}
+            className="flex-1 w-full bg-stone-100"
+          />
+        ) : (
+          <PdfPages url={new URL(doc.url, window.location.href).href} />
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const TODAY = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
@@ -104,6 +208,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [detailModalEvent, setDetailModalEvent] = useState<EventCalendarItem | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [openDoc, setOpenDoc] = useState<OpenDoc | null>(null);
+  const closeDoc = React.useCallback(() => setOpenDoc(null), []);
 
   // Month names
   const monthNames = [
@@ -725,7 +831,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           <span className="hidden sm:inline">.ICS</span>
                         </button>
 
-                        <DocLinks event={event} className="p-2 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center gap-1.5" />
+                        <DocLinks event={event} onOpen={setOpenDoc} className="p-2 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center gap-1.5" />
 
                         {/* Copy / Share */}
                         <button
@@ -893,7 +999,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
                         {(safeDocUrl(event.pdfUrl) || safeDocUrl(event.pptUrl)) && (
                           <div className="flex items-center gap-2">
-                            <DocLinks event={event} className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center justify-center gap-1" />
+                            <DocLinks event={event} onOpen={setOpenDoc} className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center justify-center gap-1" />
                           </div>
                         )}
 
@@ -961,6 +1067,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
         </div>
 
       </div>
+
+      {openDoc && <DocViewer doc={openDoc} onClose={closeDoc} />}
 
       {/* DETAILED DAY EVENT MODAL */}
       {detailModalEvent && (
@@ -1099,7 +1207,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                   <span>Download .ICS</span>
                 </button>
 
-                <DocLinks event={detailModalEvent} className="px-4 py-2.5 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition-colors flex items-center gap-1.5" />
+                <DocLinks event={detailModalEvent} onOpen={setOpenDoc} className="px-4 py-2.5 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition-colors flex items-center gap-1.5" />
               </div>
 
             </div>
