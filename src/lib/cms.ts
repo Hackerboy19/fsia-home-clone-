@@ -54,6 +54,12 @@ export function cmsList<T>(key: string, fallback: T[]): T[] {
   return Array.isArray(items) && items.length > 0 ? (items as T[]) : fallback;
 }
 
+/** Any other field saved in a section (e.g. calendar_events.types). Missing -> fallback. */
+export function cmsField<T>(key: string, field: string, fallback: T): T {
+  const v = section(key)?.[field];
+  return v === undefined || v === null ? fallback : (v as T);
+}
+
 /** An object section; saved fields override the fallback's. */
 export function cmsObject<T extends object>(key: string, fallback: T): T {
   const c = section(key);

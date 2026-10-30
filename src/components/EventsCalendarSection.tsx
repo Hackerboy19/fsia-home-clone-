@@ -19,7 +19,7 @@ import {
   Share2
 } from 'lucide-react';
 import { UPCOMING_EVENTS as DEFAULT_EVENTS } from '../data/fsiaData';
-import { cmsHeader, cmsList } from '../lib/cms';
+import { cmsField, cmsHeader, cmsList } from '../lib/cms';
 import { linkProps, richText } from '../lib/richText';
 import { DEFAULT_CALENDAR_TEXT } from '../data/homeContent';
 
@@ -31,6 +31,33 @@ const UPCOMING_EVENTS: EventCalendarItem[] = [...cmsList<EventCalendarItem>('cal
   .filter((e) => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date || ''))
   .map((e) => ({ ...e, highlights: Array.isArray(e.highlights) ? e.highlights : [] }))
   .sort((a, b) => a.date.localeCompare(b.date));
+
+// Event types: the built-in ones plus any added in the CMS (Event Calendar -> Event types).
+// Filter buttons and the colour key list only the types some event uses.
+type EventType = { id: string; label: string; badge: string; color: string };
+const BUILT_IN_TYPES: EventType[] = [
+  { id: 'audition', label: 'Auditions & Screenings', badge: 'City Audition', color: '#059669' },
+  { id: 'workshop', label: 'Masterclasses & Camps', badge: 'Camp / Masterclass', color: '#059669' },
+  { id: 'pageant', label: 'Pageant Finales', badge: 'National Pageant', color: '#A6093D' },
+  { id: 'award', label: 'National Awards', badge: 'National Award', color: '#B8860B' },
+  { id: 'ceremony', label: 'Coronation Galas', badge: 'Grand Coronation / Ceremony', color: '#A6093D' },
+];
+const CUSTOM_TYPES: EventType[] = (() => {
+  const raw = cmsField<unknown>('calendar_events', 'types', []);
+  return (Array.isArray(raw) ? raw : [])
+    .filter((t): t is { value: string; label: string; color?: string } =>
+      !!t && typeof t.value === 'string' && typeof t.label === 'string' && t.label.trim() !== '' && !BUILT_IN_TYPES.some((b) => b.id === t.value))
+    .map((t) => ({
+      id: t.value,
+      label: t.label.trim(),
+      badge: t.label.trim(),
+      color: /^#[0-9a-f]{6}$/i.test(t.color || '') ? (t.color as string) : '#64748B',
+    }));
+})();
+const ALL_TYPES = [...BUILT_IN_TYPES, ...CUSTOM_TYPES];
+const USED_TYPES = ALL_TYPES.filter((t) => UPCOMING_EVENTS.some((e) => e.type === t.id));
+const typeInfo = (id: string): EventType =>
+  ALL_TYPES.find((t) => t.id === id) || { id, label: 'Official Event', badge: 'Official Event', color: '#059669' };
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const TODAY = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
@@ -45,7 +72,7 @@ interface EventsCalendarSectionProps {
   onExploreAwards?: () => void;
 }
 
-type EventFilterType = 'all' | 'pageant' | 'award' | 'audition' | 'ceremony' | 'workshop';
+type EventFilterType = string;
 type ViewMode = 'grid' | 'agenda';
 
 export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
@@ -212,22 +239,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
   };
 
   // Helper to get relative label or countdown text
-  const getEventBadgeLabel = (type: EventCalendarItem['type']) => {
-    switch (type) {
-      case 'pageant':
-        return 'National Pageant';
-      case 'award':
-        return 'National Award';
-      case 'audition':
-        return 'City Audition';
-      case 'ceremony':
-        return 'Grand Coronation / Ceremony';
-      case 'workshop':
-        return 'Camp / Masterclass';
-      default:
-        return 'Official Event';
-    }
-  };
+  const getEventBadgeLabel = (type: EventCalendarItem['type']) => typeInfo(type).badge;
 
   // Generate Google Calendar Link
   const getGoogleCalendarUrl = (event: EventCalendarItem) => {
@@ -368,14 +380,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
             {/* Category Filter Buttons */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              {[
-                { id: 'all', label: 'All Dates' },
-                { id: 'audition', label: 'Auditions & Screenings' },
-                { id: 'workshop', label: 'Masterclasses & Camps' },
-                { id: 'pageant', label: 'Pageant Finales' },
-                { id: 'award', label: 'National Awards' },
-                { id: 'ceremony', label: 'Coronation Galas' }
-              ].map((tab) => (
+              {[{ id: 'all', label: 'All Dates' }, ...USED_TYPES].map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
@@ -487,13 +492,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                   const isCurrentDay = cell.dateString === TODAY;
 
                   // Determine event type color indicator
-                  const firstEventType = cell.events[0]?.type;
-                  const eventColor =
-                    firstEventType === 'pageant' || firstEventType === 'ceremony'
-                      ? 'bg-[#A6093D]'
-                      : firstEventType === 'award'
-                      ? 'bg-[#B8860B]'
-                      : 'bg-emerald-600';
+                  const eventColor = typeInfo(cell.events[0]?.type || '').color;
 
                   return (
                     <button
@@ -543,7 +542,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                         <div className="w-full mt-1">
                           <div className="hidden sm:block">
                             <div
-                              className={`text-[10px] font-medium leading-tight truncate px-1 py-0.5 rounded text-white ${eventColor}`}
+                              className="text-[10px] font-medium leading-tight truncate px-1 py-0.5 rounded text-white"
+                              style={{ backgroundColor: eventColor }}
                             >
                               {cell.events[0].category.replace('Forever ', '')}
                             </div>
@@ -556,7 +556,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
                           {/* Mobile compact dot indicator */}
                           <div className="sm:hidden flex items-center gap-1 mt-auto">
-                            <span className={`w-2 h-2 rounded-full ${eventColor}`} />
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: eventColor }} />
                             {cell.events.length > 1 && (
                               <span className="text-[9px] font-bold text-stone-600">
                                 {cell.events.length}
@@ -573,18 +573,12 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
               {/* Calendar Legend & Key */}
               <div className="mt-6 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#A6093D]" />
-                    <span>Pageant / Grand Coronation</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#B8860B]" />
-                    <span>National Award Ceremonies</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                    <span>Auditions &amp; Masterclasses</span>
-                  </div>
+                  {USED_TYPES.map((t) => (
+                    <div key={t.id} className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                      <span>{t.label}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <button
