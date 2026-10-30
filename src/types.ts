@@ -134,6 +134,8 @@ export interface EventCalendarItem {
   image: string;
   keywords?: string[]; // extra search terms set in the CMS admin
   highlight?: boolean; // show a "Featured" marker on the calendar day
+  pdfUrl?: string; // brochure / schedule uploaded in the CMS
+  pptUrl?: string;
 }
 
 export interface SuccessStorySlide {

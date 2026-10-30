@@ -59,6 +59,21 @@ const USED_TYPES = ALL_TYPES.filter((t) => UPCOMING_EVENTS.some((e) => e.type ==
 const typeInfo = (id: string): EventType =>
   ALL_TYPES.find((t) => t.id === id) || { id, label: 'Official Event', badge: 'Official Event', color: '#059669' };
 
+// PDF / PPT attached to an event in the CMS (brochure, schedule, rules).
+const safeDocUrl = (u?: string) => (typeof u === 'string' && /^(https?:\/\/|\/(?!\/))/i.test(u.trim()) ? u.trim() : '');
+const DocLinks: React.FC<{ event: EventCalendarItem; className: string }> = ({ event, className }) => (
+  <>
+    {([['PDF', event.pdfUrl, '#DC2626'], ['PPT', event.pptUrl, '#EA580C']] as const).map(([label, url, color]) =>
+      safeDocUrl(url) ? (
+        <a key={label} href={safeDocUrl(url)} target="_blank" rel="noopener noreferrer" className={className} title={`Download ${label}`}>
+          <span className="text-[9px] font-extrabold text-white rounded px-1 py-0.5" style={{ backgroundColor: color }}>{label}</span>
+          <span>{label}</span>
+        </a>
+      ) : null
+    )}
+  </>
+);
+
 const pad = (n: number) => String(n).padStart(2, '0');
 const TODAY = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
 // Open on the next upcoming event (or today when nothing is scheduled ahead).
@@ -710,6 +725,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           <span className="hidden sm:inline">.ICS</span>
                         </button>
 
+                        <DocLinks event={event} className="p-2 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center gap-1.5" />
+
                         {/* Copy / Share */}
                         <button
                           type="button"
@@ -873,6 +890,12 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                             <Download className="w-3.5 h-3.5" />
                           </button>
                         </div>
+
+                        {(safeDocUrl(event.pdfUrl) || safeDocUrl(event.pptUrl)) && (
+                          <div className="flex items-center gap-2">
+                            <DocLinks event={event} className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center justify-center gap-1" />
+                          </div>
+                        )}
 
                         <button
                           type="button"
@@ -1075,6 +1098,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                   <Download className="w-4 h-4 text-stone-600" />
                   <span>Download .ICS</span>
                 </button>
+
+                <DocLinks event={detailModalEvent} className="px-4 py-2.5 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition-colors flex items-center gap-1.5" />
               </div>
 
             </div>
