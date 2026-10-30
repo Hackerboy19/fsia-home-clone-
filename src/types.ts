@@ -121,7 +121,7 @@ export interface EventCalendarItem {
   date: string; // ISO YYYY-MM-DD format e.g. "2026-10-15"
   endDate?: string;
   time: string; // e.g. "10:00 AM – 6:00 PM IST"
-  type: 'pageant' | 'award' | 'audition' | 'ceremony' | 'workshop';
+  type: string; // 'pageant' | 'award' | 'audition' | 'ceremony' | 'workshop', or a custom type id from the CMS
   category: string; // e.g. "Forever Miss India", "Super Woman Award"
   venue: string; // e.g. "Zee Studio Arena, Jaipur"
   city: string; // e.g. "Jaipur, Rajasthan"
@@ -134,6 +134,8 @@ export interface EventCalendarItem {
   image: string;
   keywords?: string[]; // extra search terms set in the CMS admin
   highlight?: boolean; // show a "Featured" marker on the calendar day
+  pdfUrl?: string; // brochure / schedule uploaded in the CMS
+  pptUrl?: string;
 }
 
 export interface SuccessStorySlide {

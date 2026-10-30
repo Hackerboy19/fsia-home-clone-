@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -19,7 +20,7 @@ import {
   Share2
 } from 'lucide-react';
 import { UPCOMING_EVENTS as DEFAULT_EVENTS } from '../data/fsiaData';
-import { cmsHeader, cmsList } from '../lib/cms';
+import { cmsField, cmsHeader, cmsList } from '../lib/cms';
 import { linkProps, richText } from '../lib/richText';
 import { DEFAULT_CALENDAR_TEXT } from '../data/homeContent';
 
@@ -31,6 +32,151 @@ const UPCOMING_EVENTS: EventCalendarItem[] = [...cmsList<EventCalendarItem>('cal
   .filter((e) => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date || ''))
   .map((e) => ({ ...e, highlights: Array.isArray(e.highlights) ? e.highlights : [] }))
   .sort((a, b) => a.date.localeCompare(b.date));
+
+// Event types: the built-in ones plus any added in the CMS (Event Calendar -> Event types).
+// Filter buttons and the colour key list only the types some event uses.
+type EventType = { id: string; label: string; badge: string; color: string };
+const BUILT_IN_TYPES: EventType[] = [
+  { id: 'audition', label: 'Auditions & Screenings', badge: 'City Audition', color: '#059669' },
+  { id: 'workshop', label: 'Masterclasses & Camps', badge: 'Camp / Masterclass', color: '#059669' },
+  { id: 'pageant', label: 'Pageant Finales', badge: 'National Pageant', color: '#A6093D' },
+  { id: 'award', label: 'National Awards', badge: 'National Award', color: '#B8860B' },
+  { id: 'ceremony', label: 'Coronation Galas', badge: 'Grand Coronation / Ceremony', color: '#A6093D' },
+];
+const CUSTOM_TYPES: EventType[] = (() => {
+  const raw = cmsField<unknown>('calendar_events', 'types', []);
+  return (Array.isArray(raw) ? raw : [])
+    .filter((t): t is { value: string; label: string; color?: string } =>
+      !!t && typeof t.value === 'string' && typeof t.label === 'string' && t.label.trim() !== '' && !BUILT_IN_TYPES.some((b) => b.id === t.value))
+    .map((t) => ({
+      id: t.value,
+      label: t.label.trim(),
+      badge: t.label.trim(),
+      color: /^#[0-9a-f]{6}$/i.test(t.color || '') ? (t.color as string) : '#64748B',
+    }));
+})();
+const ALL_TYPES = [...BUILT_IN_TYPES, ...CUSTOM_TYPES];
+const USED_TYPES = ALL_TYPES.filter((t) => UPCOMING_EVENTS.some((e) => e.type === t.id));
+const typeInfo = (id: string): EventType =>
+  ALL_TYPES.find((t) => t.id === id) || { id, label: 'Official Event', badge: 'Official Event', color: '#059669' };
+
+// PDF / PPT attached to an event in the CMS (brochure, schedule, rules).
+// Clicking opens it inside the page (DocViewer) instead of downloading it.
+type DocKind = 'PDF' | 'PPT';
+type OpenDoc = { kind: DocKind; url: string; title: string };
+const safeDocUrl = (u?: string) => (typeof u === 'string' && /^(https?:\/\/|\/(?!\/))/i.test(u.trim()) ? u.trim() : '');
+const DOC_COLOR: Record<DocKind, string> = { PDF: '#DC2626', PPT: '#EA580C' };
+const DocLinks: React.FC<{ event: EventCalendarItem; className: string; onOpen: (d: OpenDoc) => void }> = ({ event, className, onOpen }) => (
+  <>
+    {([['PDF', event.pdfUrl], ['PPT', event.pptUrl]] as [DocKind, string | undefined][]).map(([kind, url]) =>
+      safeDocUrl(url) ? (
+        <button key={kind} type="button" onClick={() => onOpen({ kind, url: safeDocUrl(url), title: event.title })} className={className} title={`View ${kind}`}>
+          <span className="text-[9px] font-extrabold text-white rounded px-1 py-0.5" style={{ backgroundColor: DOC_COLOR[kind] }}>{kind}</span>
+          <span>View {kind}</span>
+        </button>
+      ) : null
+    )}
+  </>
+);
+
+// pdf.js draws each PDF page as an image, so PDFs show the same on phones and computers.
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+type PdfJs = {
+  GlobalWorkerOptions: { workerSrc: string };
+  getDocument: (url: string) => { promise: Promise<{ numPages: number; getPage: (n: number) => Promise<{
+    getViewport: (o: { scale: number }) => { width: number; height: number };
+    render: (o: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
+  }> }> };
+};
+let pdfJsLoading: Promise<PdfJs> | null = null;
+function loadPdfJs(): Promise<PdfJs> {
+  const w = window as unknown as { pdfjsLib?: PdfJs };
+  if (w.pdfjsLib) return Promise.resolve(w.pdfjsLib);
+  if (!pdfJsLoading) {
+    pdfJsLoading = new Promise((ok, fail) => {
+      const sc = document.createElement('script');
+      sc.src = `${PDFJS}pdf.min.js`;
+      sc.onload = () => { w.pdfjsLib!.GlobalWorkerOptions.workerSrc = `${PDFJS}pdf.worker.min.js`; ok(w.pdfjsLib!); };
+      sc.onerror = () => { pdfJsLoading = null; fail(new Error('pdf.js')); };
+      document.head.appendChild(sc);
+    });
+  }
+  return pdfJsLoading;
+}
+
+const PdfPages: React.FC<{ url: string }> = ({ url }) => {
+  const box = React.useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<'loading' | 'ok' | 'error'>('loading');
+  React.useEffect(() => {
+    let alive = true;
+    const host = box.current;
+    if (!host) return undefined;
+    host.textContent = '';
+    loadPdfJs()
+      .then((lib) => lib.getDocument(url).promise)
+      .then(async (pdf) => {
+        if (alive) setState('ok');
+        const scale = Math.min(2, (window.devicePixelRatio || 1) * 1.5);
+        for (let n = 1; n <= pdf.numPages && alive; n++) {
+          const pg = await pdf.getPage(n);
+          const vp = pg.getViewport({ scale });
+          const cv = document.createElement('canvas');
+          cv.width = vp.width; cv.height = vp.height;
+          cv.style.width = `${vp.width / scale}px`;
+          cv.className = 'block max-w-full !h-auto mx-auto mb-3 bg-white shadow-md';
+          host.appendChild(cv);
+          await pg.render({ canvasContext: cv.getContext('2d')!, viewport: vp }).promise;
+        }
+      })
+      .catch(() => alive && setState('error'));
+    return () => { alive = false; };
+  }, [url]);
+  return (
+    <div className="flex-1 overflow-auto bg-stone-200 p-3 text-center">
+      {state === 'loading' && <p className="py-10 text-sm text-stone-600">Loading…</p>}
+      {state === 'error' && <p className="py-10 text-sm text-stone-600">This file could not be shown here. Use Download to open it.</p>}
+      <div ref={box} />
+    </div>
+  );
+};
+
+const DocViewer: React.FC<{ doc: OpenDoc; onClose: () => void }> = ({ doc, onClose }) => {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+  // Rendered on <body> so the site header and ticker never sit on top of it.
+  return createPortal(
+    <div style={{ zIndex: 2147483646 }} className="fixed inset-0 flex items-center justify-center p-2 sm:p-6 bg-black/70" role="dialog" aria-modal="true" aria-label={`${doc.kind}: ${doc.title}`} onClick={onClose}>
+      <div className="flex flex-col w-full max-w-5xl h-[92vh] bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200">
+          <span className="text-[10px] font-extrabold text-white rounded px-1.5 py-0.5" style={{ backgroundColor: DOC_COLOR[doc.kind] }}>{doc.kind}</span>
+          <span className="flex-1 min-w-0 truncate text-sm font-semibold text-[#0C1322]">{doc.title}</span>
+          <a href={doc.url} download target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-medium text-stone-700 border border-stone-200 rounded-lg hover:bg-stone-50 flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Download</span>
+          </a>
+          <button type="button" onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        {doc.kind === 'PPT' ? (
+          // PowerPoint has no viewer in the browser: Microsoft's free Office viewer shows it (the file must be public).
+          <iframe
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(new URL(doc.url, window.location.href).href)}`}
+            title={`${doc.kind}: ${doc.title}`}
+            className="flex-1 w-full bg-stone-100"
+          />
+        ) : (
+          <PdfPages url={new URL(doc.url, window.location.href).href} />
+        )}
+      </div>
+    </div>,
+    document.body
+  );
+};
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const TODAY = (() => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; })();
@@ -45,7 +191,7 @@ interface EventsCalendarSectionProps {
   onExploreAwards?: () => void;
 }
 
-type EventFilterType = 'all' | 'pageant' | 'award' | 'audition' | 'ceremony' | 'workshop';
+type EventFilterType = string;
 type ViewMode = 'grid' | 'agenda';
 
 export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
@@ -62,6 +208,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [detailModalEvent, setDetailModalEvent] = useState<EventCalendarItem | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [openDoc, setOpenDoc] = useState<OpenDoc | null>(null);
+  const closeDoc = React.useCallback(() => setOpenDoc(null), []);
 
   // Month names
   const monthNames = [
@@ -212,22 +360,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
   };
 
   // Helper to get relative label or countdown text
-  const getEventBadgeLabel = (type: EventCalendarItem['type']) => {
-    switch (type) {
-      case 'pageant':
-        return 'National Pageant';
-      case 'award':
-        return 'National Award';
-      case 'audition':
-        return 'City Audition';
-      case 'ceremony':
-        return 'Grand Coronation / Ceremony';
-      case 'workshop':
-        return 'Camp / Masterclass';
-      default:
-        return 'Official Event';
-    }
-  };
+  const getEventBadgeLabel = (type: EventCalendarItem['type']) => typeInfo(type).badge;
 
   // Generate Google Calendar Link
   const getGoogleCalendarUrl = (event: EventCalendarItem) => {
@@ -368,14 +501,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
             {/* Category Filter Buttons */}
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              {[
-                { id: 'all', label: 'All Dates' },
-                { id: 'audition', label: 'Auditions & Screenings' },
-                { id: 'workshop', label: 'Masterclasses & Camps' },
-                { id: 'pageant', label: 'Pageant Finales' },
-                { id: 'award', label: 'National Awards' },
-                { id: 'ceremony', label: 'Coronation Galas' }
-              ].map((tab) => (
+              {[{ id: 'all', label: 'All Dates' }, ...USED_TYPES].map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
@@ -487,13 +613,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                   const isCurrentDay = cell.dateString === TODAY;
 
                   // Determine event type color indicator
-                  const firstEventType = cell.events[0]?.type;
-                  const eventColor =
-                    firstEventType === 'pageant' || firstEventType === 'ceremony'
-                      ? 'bg-[#A6093D]'
-                      : firstEventType === 'award'
-                      ? 'bg-[#B8860B]'
-                      : 'bg-emerald-600';
+                  const eventColor = typeInfo(cell.events[0]?.type || '').color;
 
                   return (
                     <button
@@ -543,7 +663,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                         <div className="w-full mt-1">
                           <div className="hidden sm:block">
                             <div
-                              className={`text-[10px] font-medium leading-tight truncate px-1 py-0.5 rounded text-white ${eventColor}`}
+                              className="text-[10px] font-medium leading-tight truncate px-1 py-0.5 rounded text-white"
+                              style={{ backgroundColor: eventColor }}
                             >
                               {cell.events[0].category.replace('Forever ', '')}
                             </div>
@@ -556,7 +677,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
 
                           {/* Mobile compact dot indicator */}
                           <div className="sm:hidden flex items-center gap-1 mt-auto">
-                            <span className={`w-2 h-2 rounded-full ${eventColor}`} />
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: eventColor }} />
                             {cell.events.length > 1 && (
                               <span className="text-[9px] font-bold text-stone-600">
                                 {cell.events.length}
@@ -573,18 +694,12 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
               {/* Calendar Legend & Key */}
               <div className="mt-6 pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
                 <div className="flex flex-wrap items-center gap-4">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#A6093D]" />
-                    <span>Pageant / Grand Coronation</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#B8860B]" />
-                    <span>National Award Ceremonies</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-                    <span>Auditions &amp; Masterclasses</span>
-                  </div>
+                  {USED_TYPES.map((t) => (
+                    <div key={t.id} className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                      <span>{t.label}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <button
@@ -715,6 +830,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           <Download className="w-4 h-4 text-stone-600" />
                           <span className="hidden sm:inline">.ICS</span>
                         </button>
+
+                        <DocLinks event={event} onOpen={setOpenDoc} className="p-2 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center gap-1.5" />
 
                         {/* Copy / Share */}
                         <button
@@ -880,6 +997,12 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           </button>
                         </div>
 
+                        {(safeDocUrl(event.pdfUrl) || safeDocUrl(event.pptUrl)) && (
+                          <div className="flex items-center gap-2">
+                            <DocLinks event={event} onOpen={setOpenDoc} className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center justify-center gap-1" />
+                          </div>
+                        )}
+
                         <button
                           type="button"
                           onClick={() => setDetailModalEvent(event)}
@@ -944,6 +1067,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
         </div>
 
       </div>
+
+      {openDoc && <DocViewer doc={openDoc} onClose={closeDoc} />}
 
       {/* DETAILED DAY EVENT MODAL */}
       {detailModalEvent && (
@@ -1081,6 +1206,8 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                   <Download className="w-4 h-4 text-stone-600" />
                   <span>Download .ICS</span>
                 </button>
+
+                <DocLinks event={detailModalEvent} onOpen={setOpenDoc} className="px-4 py-2.5 text-xs font-medium text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition-colors flex items-center gap-1.5" />
               </div>
 
             </div>
