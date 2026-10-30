@@ -40,6 +40,26 @@ function applyPreview(): void {
   if (document.body) add();
   else document.addEventListener('DOMContentLoaded', add);
 }
+/*
+ * Fallback: if the page did not print window.__FSIA_CMS__ (an older index.php
+ * on the server), read the same data from the CMS API before the components
+ * load. Synchronous on purpose: every section reads its content once at start-up.
+ */
+function loadFromApi(): void {
+  if (typeof window === 'undefined' || window.__FSIA_CMS__) return;
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', '/cms/backend/api/sections.php?page=index', false);
+    xhr.send();
+    if (xhr.status === 200) {
+      const data = JSON.parse(xhr.responseText);
+      if (data && typeof data === 'object' && !Array.isArray(data)) window.__FSIA_CMS__ = data as Record<string, CmsSection>;
+    }
+  } catch {
+    /* keep the built-in defaults */
+  }
+}
+loadFromApi();
 applyPreview();
 
 function section(key: string): Record<string, unknown> | undefined {
