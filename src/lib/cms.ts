@@ -40,6 +40,26 @@ function applyPreview(): void {
   if (document.body) add();
   else document.addEventListener('DOMContentLoaded', add);
 }
+/*
+ * Fallback: if the page did not print window.__FSIA_CMS__ (an older index.php
+ * on the server), read the same data from the CMS API before the components
+ * load. Synchronous on purpose: every section reads its content once at start-up.
+ */
+function loadFromApi(): void {
+  if (typeof window === 'undefined' || window.__FSIA_CMS__) return;
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', '/cms/backend/api/sections.php?page=index', false);
+    xhr.send();
+    if (xhr.status === 200) {
+      const data = JSON.parse(xhr.responseText);
+      if (data && typeof data === 'object' && !Array.isArray(data)) window.__FSIA_CMS__ = data as Record<string, CmsSection>;
+    }
+  } catch {
+    /* keep the built-in defaults */
+  }
+}
+loadFromApi();
 applyPreview();
 
 function section(key: string): Record<string, unknown> | undefined {
@@ -52,6 +72,12 @@ function section(key: string): Record<string, unknown> | undefined {
 export function cmsList<T>(key: string, fallback: T[]): T[] {
   const items = section(key)?.items;
   return Array.isArray(items) && items.length > 0 ? (items as T[]) : fallback;
+}
+
+/** Any other field saved in a section (e.g. calendar_events.types). Missing -> fallback. */
+export function cmsField<T>(key: string, field: string, fallback: T): T {
+  const v = section(key)?.[field];
+  return v === undefined || v === null ? fallback : (v as T);
 }
 
 /** An object section; saved fields override the fallback's. */
