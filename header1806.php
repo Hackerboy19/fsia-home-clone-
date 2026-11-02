@@ -367,7 +367,7 @@
   <nav class="nav">
     <div class="wrap">
       <div class="nav-in">
-        <a href="/index.php" class="brand" aria-label="Forever Star India home">
+        <a href="/" class="brand" aria-label="Forever Star India home">
           <img src="/assets-new/media/logo.gif" alt="Forever Star India" class="brand-img">
           <span class="brand-tx">
             <strong>FOREVER STAR INDIA</strong>
@@ -382,7 +382,7 @@
         </div>
 
         <div class="links" id="fsiaLinks">
-          <a href="/index.php">Home</a>
+          <a href="/">Home</a>
           <a href="/about.php">About</a>
           <div class="reg" id="fsiaReg">
             <button class="reg-btn" type="button">

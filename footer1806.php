@@ -91,7 +91,7 @@
 
       <!-- Brand -->
       <div class="ft-brand">
-        <a href="/index.php" class="bm">
+        <a href="/" class="bm">
           <img src="/assets-new/media/logo.gif" alt="Forever Star India" class="bm-img">
           <span><strong>FOREVER STAR INDIA</strong><span>Beauty Pageants &amp; Awards</span></span>
         </a>
