@@ -136,6 +136,7 @@ export interface EventCalendarItem {
   highlight?: boolean; // show a "Featured" marker on the calendar day
   pdfUrl?: string; // brochure / schedule uploaded in the CMS
   pptUrl?: string;
+  videoUrl?: string; // YouTube / Instagram / Drive link or an MP4 uploaded in the CMS
 }
 
 export interface SuccessStorySlide {

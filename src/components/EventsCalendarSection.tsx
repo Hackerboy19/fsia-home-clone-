@@ -30,7 +30,16 @@ const HEAD = cmsHeader('calendar_events', DEFAULT_CALENDAR_TEXT);
 // Events come from the CMS admin (Homepage -> Event Calendar), sorted by date.
 const UPCOMING_EVENTS: EventCalendarItem[] = [...cmsList<EventCalendarItem>('calendar_events', DEFAULT_EVENTS)]
   .filter((e) => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date || ''))
-  .map((e) => ({ ...e, highlights: Array.isArray(e.highlights) ? e.highlights : [] }))
+  // Text fields an older CMS event may not have: keep them strings so the calendar never crashes.
+  .map((e) => {
+    const t = (v: unknown) => (typeof v === 'string' ? v : '');
+    return {
+      ...e,
+      title: t(e.title) || 'FSIA Event', category: t(e.category), description: t(e.description), time: t(e.time),
+      venue: t(e.venue), ctaUrl: t(e.ctaUrl), ctaText: t(e.ctaText), type: t(e.type),
+      highlights: Array.isArray(e.highlights) ? e.highlights : [],
+    };
+  })
   .sort((a, b) => a.date.localeCompare(b.date));
 
 // Event types: the built-in ones plus any added in the CMS (Event Calendar -> Event types).
@@ -62,17 +71,35 @@ const typeInfo = (id: string): EventType =>
 
 // PDF / PPT attached to an event in the CMS (brochure, schedule, rules).
 // Clicking opens it inside the page (DocViewer) instead of downloading it.
-type DocKind = 'PDF' | 'PPT';
+type DocKind = 'PDF' | 'PPT' | 'VIDEO';
 type OpenDoc = { kind: DocKind; url: string; title: string };
 const safeDocUrl = (u?: string) => (typeof u === 'string' && /^(https?:\/\/|\/(?!\/))/i.test(u.trim()) ? u.trim() : '');
-const DOC_COLOR: Record<DocKind, string> = { PDF: '#DC2626', PPT: '#EA580C' };
+const DOC_COLOR: Record<DocKind, string> = { PDF: '#DC2626', PPT: '#EA580C', VIDEO: '#7C3AED' };
+const hasDocs = (e: EventCalendarItem) => !!(safeDocUrl(e.pdfUrl) || safeDocUrl(e.pptUrl) || safeDocUrl(e.videoUrl));
+
+// YouTube / Vimeo / Instagram / Google Drive / Facebook link -> embed player. null = a plain video file (MP4).
+function videoEmbed(url: string): { src: string; tall?: boolean } | null {
+  let m: RegExpMatchArray | null;
+  if ((m = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/i))) {
+    return { src: `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0&playsinline=1`, tall: /shorts\//i.test(url) };
+  }
+  if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i))) return { src: `https://player.vimeo.com/video/${m[1]}?autoplay=1` };
+  if ((m = url.match(/instagram\.com\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]+)/i))) {
+    return { src: `https://www.instagram.com/${m[1] === 'reels' ? 'reel' : m[1]}/${m[2]}/embed`, tall: true };
+  }
+  if ((m = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([\w-]+)/i))) return { src: `https://drive.google.com/file/d/${m[1]}/preview` };
+  if (/facebook\.com\/.+\/videos\/|fb\.watch\//i.test(url)) {
+    return { src: `https://www.facebook.com/plugins/video.php?show_text=false&href=${encodeURIComponent(url)}` };
+  }
+  return null;
+}
 const DocLinks: React.FC<{ event: EventCalendarItem; className: string; onOpen: (d: OpenDoc) => void }> = ({ event, className, onOpen }) => (
   <>
-    {([['PDF', event.pdfUrl], ['PPT', event.pptUrl]] as [DocKind, string | undefined][]).map(([kind, url]) =>
+    {([['PDF', event.pdfUrl], ['PPT', event.pptUrl], ['VIDEO', event.videoUrl]] as [DocKind, string | undefined][]).map(([kind, url]) =>
       safeDocUrl(url) ? (
-        <button key={kind} type="button" onClick={() => onOpen({ kind, url: safeDocUrl(url), title: event.title })} className={className} title={`View ${kind}`}>
-          <span className="text-[9px] font-extrabold text-white rounded px-1 py-0.5" style={{ backgroundColor: DOC_COLOR[kind] }}>{kind}</span>
-          <span>View {kind}</span>
+        <button key={kind} type="button" onClick={() => onOpen({ kind, url: safeDocUrl(url), title: event.title })} className={className} title={kind === 'VIDEO' ? 'Watch Video' : `View ${kind}`}>
+          <span className="text-[9px] font-extrabold text-white rounded px-1 py-0.5" style={{ backgroundColor: DOC_COLOR[kind] }}>{kind === 'VIDEO' ? '▶' : kind}</span>
+          <span>{kind === 'VIDEO' ? 'Watch Video' : `View ${kind}`}</span>
         </button>
       ) : null
     )}
@@ -148,21 +175,32 @@ const DocViewer: React.FC<{ doc: OpenDoc; onClose: () => void }> = ({ doc, onClo
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = prev; };
   }, [onClose]);
+  const isVideo = doc.kind === 'VIDEO';
+  const absUrl = new URL(doc.url, window.location.href).href;
+  const embed = isVideo ? videoEmbed(absUrl) : null;
   // Rendered on <body> so the site header and ticker never sit on top of it.
   return createPortal(
     <div style={{ zIndex: 2147483646 }} className="fixed inset-0 flex items-center justify-center p-2 sm:p-6 bg-black/70" role="dialog" aria-modal="true" aria-label={`${doc.kind}: ${doc.title}`} onClick={onClose}>
-      <div className="flex flex-col w-full max-w-5xl h-[92vh] bg-white rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200">
+      <div className={`flex flex-col w-full rounded-2xl overflow-hidden shadow-2xl ${isVideo ? 'max-w-4xl max-h-[92vh] bg-black' : 'max-w-5xl h-[92vh] bg-white'}`} onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200 bg-white">
           <span className="text-[10px] font-extrabold text-white rounded px-1.5 py-0.5" style={{ backgroundColor: DOC_COLOR[doc.kind] }}>{doc.kind}</span>
           <span className="flex-1 min-w-0 truncate text-sm font-semibold text-[#0C1322]">{doc.title}</span>
-          <a href={doc.url} download target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-medium text-stone-700 border border-stone-200 rounded-lg hover:bg-stone-50 flex items-center gap-1.5">
-            <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Download</span>
+          <a href={doc.url} download={isVideo ? undefined : ''} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-medium text-stone-700 border border-stone-200 rounded-lg hover:bg-stone-50 flex items-center gap-1.5">
+            <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">{isVideo ? 'Open' : 'Download'}</span>
           </a>
           <button type="button" onClick={onClose} aria-label="Close" className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center">
             <X className="w-4 h-4" />
           </button>
         </div>
-        {doc.kind === 'PPT' ? (
+        {isVideo ? (
+          <div className="relative w-full bg-black" style={embed?.tall ? { height: 'calc(92vh - 58px)' } : { aspectRatio: '16 / 9', maxHeight: 'calc(92vh - 58px)' }}>
+            {embed ? (
+              <iframe src={embed.src} title={`Video: ${doc.title}`} allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen className="absolute inset-0 w-full h-full border-0" />
+            ) : (
+              <video src={absUrl} controls autoPlay playsInline preload="metadata" className="absolute inset-0 w-full h-full bg-black" />
+            )}
+          </div>
+        ) : doc.kind === 'PPT' ? (
           // PowerPoint has no viewer in the browser: Microsoft's free Office viewer shows it (the file must be public).
           <iframe
             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(new URL(doc.url, window.location.href).href)}`}
@@ -997,7 +1035,7 @@ export const EventsCalendarSection: React.FC<EventsCalendarSectionProps> = ({
                           </button>
                         </div>
 
-                        {(safeDocUrl(event.pdfUrl) || safeDocUrl(event.pptUrl)) && (
+                        {hasDocs(event) && (
                           <div className="flex items-center gap-2">
                             <DocLinks event={event} onOpen={setOpenDoc} className="flex-1 px-3 py-1.5 text-xs font-medium text-center text-stone-700 bg-white hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors flex items-center justify-center gap-1" />
                           </div>
